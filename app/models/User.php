@@ -32,14 +32,23 @@ class User extends Model {
     }
     
     /**
-     * Logout user
+     * Validate email format
      * 
-     * @return void
+     * @param string $email
+     * @return bool
      */
-    public function logout() {
-        session_start();
-        session_unset();
-        session_destroy();
+    public function validateEmail($email) {
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+    }
+    
+    /**
+     * Check if email exists in database
+     * 
+     * @param string $email
+     * @return bool
+     */
+    public function emailExists($email) {
+        return $this->findByEmail($email) !== false;
     }
     
     /**
