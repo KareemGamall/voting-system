@@ -47,6 +47,17 @@ $router->post('/register', 'AuthController', 'register');
 $router->get('/logout', 'AuthController', 'logout');
 $router->post('/logout', 'AuthController', 'logout');
 
+// Define routes for Admin Module
+$router->get('/admin/dashboard', 'AdminController', 'dashboard');
+$router->get('/admin/elections', 'AdminController', 'elections');
+$router->get('/admin/voters', 'AdminController', 'voters');
+$router->post('/admin/save-election', 'AdminController', 'saveElection');
+$router->post('/admin/update-election', 'AdminController', 'updateElection');
+$router->get('/admin/get-election/{id}', 'AdminController', 'getElection');
+$router->post('/admin/delete-election/{id}', 'AdminController', 'deleteElection');
+$router->post('/admin/add-voter', 'AdminController', 'addVoter');
+$router->post('/admin/remove-voter', 'AdminController', 'removeVoter');
+
 // Dispatch the request
 $router->dispatch();
 

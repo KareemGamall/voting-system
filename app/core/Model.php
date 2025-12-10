@@ -26,16 +26,41 @@ abstract class Model {
     }
     
     /**
+     * Get all records (alias for all())
+     */
+    public function getAll() {
+        return $this->all();
+    }
+    
+    /**
      * Create a new record
+     * 
+     * @param array $data
+     * @return int|false Returns the last inserted ID on success, false on failure
      */
     public function create($data) {
-        $columns = implode(', ', array_keys($data));
-        $placeholders = ':' . implode(', :', array_keys($data));
-        
-        $sql = "INSERT INTO {$this->table} ($columns) VALUES ($placeholders)";
-        $stmt = $this->db->prepare($sql);
-        
-        return $stmt->execute($data);
+        try {
+            $columns = implode(', ', array_keys($data));
+            $placeholders = ':' . implode(', :', array_keys($data));
+            
+            $sql = "INSERT INTO {$this->table} ($columns) VALUES ($placeholders)";
+            $stmt = $this->db->prepare($sql);
+            
+            if ($stmt->execute($data)) {
+                return $this->db->lastInsertId();
+            }
+            
+            // Get error info if execution failed
+            $errorInfo = $stmt->errorInfo();
+            error_log("SQL Error in Model::create for table {$this->table}: " . print_r($errorInfo, true));
+            error_log("SQL: " . $sql);
+            error_log("Data: " . print_r($data, true));
+            
+            return false;
+        } catch (PDOException $e) {
+            error_log("PDO Exception in Model::create: " . $e->getMessage());
+            throw $e;
+        }
     }
     
     /**
@@ -97,5 +122,32 @@ abstract class Model {
      */
     public function lastInsertId() {
         return $this->db->lastInsertId();
+    }
+    
+    /**
+     * Count records
+     * 
+     * @param array $conditions Optional conditions array (e.g., ['is_voter' => 1])
+     * @return int
+     */
+    public function count($conditions = []) {
+        if (empty($conditions)) {
+            $sql = "SELECT COUNT(*) as total FROM {$this->table}";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+        } else {
+            $whereClause = [];
+            foreach (array_keys($conditions) as $key) {
+                $whereClause[] = "$key = :$key";
+            }
+            $whereClause = implode(' AND ', $whereClause);
+            
+            $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE $whereClause";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($conditions);
+        }
+        
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int) ($result['total'] ?? 0);
     }
 }

@@ -127,7 +127,7 @@ class Router {
     }
     
     /**
-     * Check if route matches URI
+     * Check if route matches URI and extract parameters
      */
     private function matchRoute($route, $uri, $method) {
         // Check method
@@ -140,11 +140,28 @@ class Router {
             return true;
         }
         
-        // Simple pattern matching (for future enhancement)
-        $pattern = str_replace('/', '\/', $route['path']);
+        // Pattern matching with parameter extraction
+        $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '([a-zA-Z0-9_-]+)', $route['path']);
+        $pattern = str_replace('/', '\/', $pattern);
         $pattern = '/^' . $pattern . '$/';
         
-        return preg_match($pattern, $uri);
+        if (preg_match($pattern, $uri, $matches)) {
+            // Extract parameter names from route
+            preg_match_all('/\{([a-zA-Z0-9_]+)\}/', $route['path'], $paramNames);
+            
+            // Store parameters in $_GET for controller access
+            if (isset($paramNames[1])) {
+                for ($i = 0; $i < count($paramNames[1]); $i++) {
+                    if (isset($matches[$i + 1])) {
+                        $_GET[$paramNames[1][$i]] = $matches[$i + 1];
+                    }
+                }
+            }
+            
+            return true;
+        }
+        
+        return false;
     }
     
     /**

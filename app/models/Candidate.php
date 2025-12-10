@@ -5,13 +5,13 @@ require_once __DIR__ . '/../core/Model.php';
 class Candidate extends Model {
     protected $table = 'candidates';
     
-    private $candidateId;
-    private $name;
-    private $position;
-    private $party;
-    private $photo;
-    private $voteCount;
-    private $electionId;
+    public $candidateId;
+    public $name;
+    public $position;
+    public $party;
+    public $photo;
+    public $voteCount;
+    public $electionId;
     
     /**
      * Add a new candidate to an election

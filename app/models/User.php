@@ -149,4 +149,19 @@ class User extends Model {
     public function getAdmins() {
         return $this->where('is_admin = 1');
     }
+    
+    /**
+     * Get users by role
+     * 
+     * @param string $role 'voter' or 'admin'
+     * @return array
+     */
+    public function getByRole($role) {
+        if ($role === 'voter') {
+            return $this->where('is_voter = 1');
+        } elseif ($role === 'admin') {
+            return $this->where('is_admin = 1');
+        }
+        return [];
+    }
 }
