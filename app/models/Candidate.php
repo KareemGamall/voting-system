@@ -12,6 +12,8 @@ class Candidate extends Model {
     public $photo;
     public $voteCount;
     public $electionId;
+
+    
     
     /**
      * Add a new candidate to an election

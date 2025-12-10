@@ -179,6 +179,7 @@ class AdminController extends Controller {
                 'status' => $election->status ?? $dbStatus
             ];
             
+            
             // Save election to database using createElection method (generates election_id)
             $electionId = $this->electionModel->createElection($dbData);
             
