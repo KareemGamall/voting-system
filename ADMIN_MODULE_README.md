@@ -1,4 +1,4 @@
-# Admin Module - Member 3
+# Admin Module - Member 2
 
 ## Overview
 This module implements the admin panel for creating and managing elections and candidates, voter management, live monitoring, and viewing results. It integrates with the authentication/session layer and the existing MVC stack.
