@@ -3,20 +3,24 @@
 require_once __DIR__ . '/../core/Controller.php';
 require_once __DIR__ . '/../core/Session.php';
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../factories/UserFactory.php';
 
 /**
  * Authentication Controller
  * Handles user authentication: login, register, logout, and home page
+ * Uses Factory Method Pattern for user creation
  */
 class AuthController extends Controller {
     
     private $userModel;
+    private $userFactory;
     
     /**
-     * Constructor - Initialize User model
+     * Constructor - Initialize User model and UserFactory
      */
     public function __construct() {
         $this->userModel = new User();
+        $this->userFactory = new UserFactory();
     }
     
     /**
@@ -195,35 +199,26 @@ class AuthController extends Controller {
         $userData = [
             'name' => $name,
             'email' => $email,
-            'password' => $password, // Will be hashed in User model
-            'is_admin' => 0,
-            'is_voter' => 1 // Default to voter
+            'password' => $password // Will be hashed in User model via Factory
         ];
         
-        // Register user
-        if ($this->userModel->register($userData)) {
-            // Automatically log in the newly registered user
-            $user = $this->userModel->findByEmail($email);
+        // Use Factory Method Pattern to create user (defaults to voter)
+        $user = $this->userFactory->createVoter($userData);
+        
+        if ($user) {
+            // Remove password from user data before storing in session
+            unset($user['password']);
             
-            if ($user) {
-                // Remove password from user data before storing in session
-                unset($user['password']);
-                
-                // Set user session
-                Session::setUser($user);
-                
-                // Redirect based on user role
-                if (Session::isAdmin()) {
-                    $this->setFlash('success', 'Registration successful! Welcome, Admin!');
-                    $this->redirect('/admin/dashboard');
-                } else {
-                    $this->setFlash('success', 'Registration successful! Welcome to Voting System!');
-                    $this->redirect('/');
-                }
+            // Set user session
+            Session::setUser($user);
+            
+            // Redirect based on user role
+            if (Session::isAdmin()) {
+                $this->setFlash('success', 'Registration successful! Welcome, Admin!');
+                $this->redirect('/admin/dashboard');
             } else {
-                // If user was created but couldn't be retrieved, redirect to login
-                $this->setFlash('success', 'Registration successful! Please login with your credentials.');
-                $this->redirect('/login');
+                $this->setFlash('success', 'Registration successful! Welcome to Voting System!');
+                $this->redirect('/');
             }
         } else {
             $this->setFlash('error', 'Registration failed. Please try again.');
