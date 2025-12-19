@@ -5,13 +5,6 @@ require_once __DIR__ . '/../core/Model.php';
 class User extends Model {
     protected $table = 'users';
     
-    private $userId;
-    private $name;
-    private $email;
-    private $password;
-    private $isAdmin;
-    private $isVoter;
-    
     /**
      * Login user - Authenticate user with email and password
      * 
