@@ -32,10 +32,36 @@ class AuthController extends Controller {
     public function home() {
         Session::start();
         
+        $activeElections = [];
+        $votedElectionIds = [];
+        
+        if (Session::isLoggedIn()) {
+            require_once __DIR__ . '/../models/Election.php';
+            $electionModel = new Election();
+            $activeElections = $electionModel->getLatestElections(6);
+            
+            // Check which elections the voter has already voted in
+            if (Session::isVoter()) {
+                require_once __DIR__ . '/../models/Vote.php';
+                $voteModel = new Vote();
+                $userId = Session::get('user_id');
+                
+                foreach ($activeElections as $election) {
+                    if ($voteModel->hasVoted($election['id'], $userId)) {
+                        $votedElectionIds[] = $election['id'];
+                    }
+                }
+            }
+        }
+        
         $data = [
             'title' => 'Home - Voting System',
             'isLoggedIn' => Session::isLoggedIn(),
+            'isVoter' => Session::isVoter(),
+            'isAdmin' => Session::isAdmin(),
             'user' => Session::getUser(),
+            'activeElections' => $activeElections,
+            'votedElectionIds' => $votedElectionIds,
             'flash' => $this->getFlash()
         ];
         

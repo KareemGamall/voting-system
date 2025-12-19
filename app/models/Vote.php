@@ -20,11 +20,6 @@ class Vote extends Model {
      * @return bool
      */
     public function castVote($electionId, $candidateId, $voterId) {
-        // Check if user has already voted in this election
-        if ($this->hasVoted($electionId, $voterId)) {
-            return false;
-        }
-        
         // Generate unique vote ID
         $voteId = $this->generateVoteId();
         
@@ -51,6 +46,7 @@ class Vote extends Model {
     
     /**
      * Check if a voter has already voted in an election
+     * Returns true if voter has cast ANY vote in this election
      * 
      * @param int $electionId
      * @param int $voterId
@@ -62,6 +58,27 @@ class Vote extends Model {
             [
                 'election_id' => $electionId,
                 'voter_id' => $voterId
+            ]
+        );
+        
+        return $result !== false;
+    }
+    
+    /**
+     * Check if voter has voted for a specific candidate
+     * 
+     * @param int $electionId
+     * @param int $candidateId
+     * @param int $voterId
+     * @return bool
+     */
+    public function hasVotedForCandidate($electionId, $candidateId, $voterId) {
+        $result = $this->findWhere(
+            'election_id = :election_id AND voter_id = :voter_id AND candidate_id = :candidate_id',
+            [
+                'election_id' => $electionId,
+                'voter_id' => $voterId,
+                'candidate_id' => $candidateId
             ]
         );
         
