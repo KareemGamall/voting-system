@@ -3,6 +3,9 @@
 /vendor/*
 /config/app.php
 
+# Environment variables
+.env
+
 /tmp/cache/models/*
 !/tmp/cache/models/empty
 /tmp/cache/persistent/*

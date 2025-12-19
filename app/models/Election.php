@@ -52,10 +52,28 @@ class Election extends Model {
         $now = date('Y-m-d H:i:s');
         $sql = "SELECT * FROM {$this->table} 
                 WHERE status = 'active' 
-                AND start_date <= :now 
-                AND end_date >= :now";
+                OR (start_date <= :now1 AND end_date >= :now2)
+                ORDER BY start_date DESC";
         
-        return $this->query($sql, ['now' => $now]);
+        return $this->query($sql, ['now1' => $now, 'now2' => $now]);
+    }
+    
+    /**
+     * Get latest elections (newest first) with limit
+     * 
+     * @param int $limit Maximum number of elections to return
+     * @return array
+     */
+    public function getLatestElections($limit = 6) {
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE status IN ('active', 'upcoming')
+                ORDER BY created_at DESC, start_date DESC
+                LIMIT :limit";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
     /**

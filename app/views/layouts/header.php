@@ -18,9 +18,21 @@
         <div class="container">
             <a href="<?php echo url('/'); ?>" class="logo">Voting System</a>
             <ul class="nav-links">
-                <?php if (isset($isLoggedIn) && $isLoggedIn): ?>
+                <?php 
+                Session::start();
+                $isLoggedIn = Session::isLoggedIn();
+                $user = Session::getUser();
+                ?>
+                <?php if ($isLoggedIn): ?>
                     <?php if (isset($user['is_admin']) && $user['is_admin'] == 1): ?>
                         <li><a href="<?php echo url('/admin/dashboard'); ?>">Admin Dashboard</a></li>
+                    <?php endif; ?>
+                    <?php if (isset($user['is_voter']) && $user['is_voter'] == 1): ?>
+                        <?php if (strpos($_SERVER['REQUEST_URI'], '/voter/dashboard') !== false): ?>
+                            <li><a href="<?php echo url('/'); ?>">Home</a></li>
+                        <?php else: ?>
+                            <li><a href="<?php echo url('/voter/dashboard'); ?>">Voter Dashboard</a></li>
+                        <?php endif; ?>
                     <?php endif; ?>
                     <li><a href="<?php echo url('/logout'); ?>" class="btn btn-secondary">Logout</a></li>
                 <?php else: ?>

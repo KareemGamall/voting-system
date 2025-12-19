@@ -6,9 +6,9 @@ class Database {
     
     private function __construct() {
         try {
-            $config = require_once __DIR__ . '/../../config/database.php';
+            $config = require __DIR__ . '/../../config/database.php';
             
-            $dsn = "mysql:host={$config['host']};dbname={$config['database']};charset={$config['charset']}";
+            $dsn = "mysql:host={$config['host']};dbname={$config['database']}";
             
             $this->connection = new PDO($dsn, $config['username'], $config['password'], $config['options']);
         } catch (PDOException $e) {

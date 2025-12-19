@@ -8,6 +8,9 @@
 // Start output buffering
 ob_start();
 
+// Set timezone
+date_default_timezone_set('Africa/Cairo'); // Egypt timezone (UTC+2)
+
 // Set error reporting (disable in production)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -57,6 +60,13 @@ $router->get('/admin/get-election/{id}', 'AdminController', 'getElection');
 $router->post('/admin/delete-election/{id}', 'AdminController', 'deleteElection');
 $router->post('/admin/add-voter', 'AdminController', 'addVoter');
 $router->post('/admin/remove-voter', 'AdminController', 'removeVoter');
+
+// Define routes for Voter Module
+$router->get('/voter/dashboard', 'VoterController', 'dashboard');
+$router->get('/voter/ballot', 'VoterController', 'ballot');
+$router->post('/voter/cast-vote', 'VoterController', 'castVote');
+$router->get('/voter/verify', 'VoterController', 'verify');
+$router->get('/voter/results', 'VoterController', 'results');
 
 // Dispatch the request
 $router->dispatch();
