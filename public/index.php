@@ -37,6 +37,9 @@ require_once BASE_PATH . '/app/core/Controller.php';
 require_once BASE_PATH . '/app/core/Session.php';
 require_once BASE_PATH . '/app/core/Router.php';
 
+// Autoload factories
+require_once BASE_PATH . '/app/factories/UserFactory.php';
+
 // Initialize router
 $router = new Router();
 
