@@ -1,97 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?= htmlspecialchars($title ?? 'Election Results') ?> - Voting System</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    /* ===== Reset & Base ===== */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+<?php 
+$title = $title ?? 'Election Results';
+require_once __DIR__ . '/../layouts/header.php'; 
+?>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    /* ===== Results Page Styles ===== */
+    .results-page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px 20px;
     }
 
-    body {
-      font-family: 'Segoe UI', Roboto, sans-serif;
-      background: #f4f6f8;
-      color: #333;
-      min-height: 100vh;
-      display: flex;
-    }
-
-    /* ===== Layout ===== */
-    #app {
-      display: flex;
-      width: 100%;
-    }
-
-    #sidebar {
-      width: 240px;
-      background: #2c3e50;
-      color: #ecf0f1;
-      display: flex;
-      flex-direction: column;
-      transition: width 0.3s ease;
-    }
-
-    #sidebar:hover {
-      width: 260px;
-    }
-
-    #sidebar-header {
-      padding: 20px;
-      font-size: 20px;
-      font-weight: bold;
-      background: #1a252f;
+    .page-header {
       text-align: center;
+      margin-bottom: 40px;
     }
 
-    #sidebar-nav {
-      display: flex;
-      flex-direction: column;
-      padding: 10px;
+    .page-header h1 {
+      color: #2c3e50;
+      font-size: 32px;
+      margin-bottom: 10px;
     }
 
-    #sidebar-nav a {
-      color: #ecf0f1;
-      text-decoration: none;
-      padding: 12px 18px;
-      margin: 6px 0;
-      border-radius: 8px;
-      transition: background 0.3s ease, transform 0.2s ease;
+    .page-header p {
+      color: #7f8c8d;
+      font-size: 16px;
     }
 
-    #sidebar-nav a:hover {
-      background: #34495e;
-      transform: translateX(5px);
-    }
-
-    #sidebar-nav a.active {
-      background: #3498db;
-      font-weight: bold;
-    }
-
-    #back-home-link {
-      margin-top: 20px;
-      border-top: 1px solid #34495e;
-      padding-top: 12px;
-      color: #ecf0f1;
-    }
-
-    #back-home-link:hover {
-      color: #3498db;
-    }
-
-    #main-content {
-      flex: 1;
-      padding: 30px;
-      background: #f9fafc;
-      overflow-y: auto;
-    }
-
-    /* ===== Cards ===== */
     .card {
       background: #fff;
       border-radius: 14px;
@@ -117,7 +52,6 @@
       font-size: 20px;
     }
 
-    /* ===== Form Elements ===== */
     .select-styled {
       padding: 12px;
       border-radius: 6px;
@@ -135,39 +69,6 @@
       box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
     }
 
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
-      margin-right: 10px;
-      margin-bottom: 10px;
-    }
-
-    .btn-primary {
-      background: #3498db;
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #2980b9;
-    }
-
-    .btn-success {
-      background: #27ae60;
-      color: white;
-    }
-
-    .btn-success:hover {
-      background: #229954;
-    }
-
-    /* ===== Results Grid ===== */
     .results-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -225,6 +126,7 @@
       border-radius: 4px;
       font-size: 12px;
       font-weight: 600;
+      margin-left: 10px;
     }
 
     .position-group {
@@ -269,23 +171,39 @@
       opacity: 0.9;
     }
 
-    /* ===== Responsive ===== */
+    .winners-section {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      padding: 25px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .winners-section h3 {
+      color: white;
+      margin-bottom: 20px;
+    }
+
+    .winner-item {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 40px;
+      color: #7f8c8d;
+    }
+
+    .no-results-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
     @media (max-width: 768px) {
-      #app {
-        flex-direction: column;
-      }
-
-      #sidebar {
-        width: 100%;
-        flex-direction: row;
-        overflow-x: auto;
-      }
-
-      #sidebar-nav {
-        flex-direction: row;
-        justify-content: space-around;
-      }
-
       .results-grid {
         grid-template-columns: 1fr;
       }
@@ -297,73 +215,74 @@
   </style>
 </head>
 <body>
-  <div id="app">
-    <?php require_once __DIR__ . '/../layouts/admin_sidebar.php'; ?>
+  <?php require_once __DIR__ . '/../layouts/header.php'; ?>
 
-    <main id="main-content">
-      <div class="card">
-        <h2>Election Results & Reports</h2>
-        
-        <div style="margin-bottom: 20px;">
-          <a href="<?= BASE_URL ?>/admin/generate-results" class="btn btn-success">
-            Generate Results
-          </a>
-          <button id="exportBtn" class="btn btn-primary" onclick="exportResults()" style="display: none;">
-            Export Results
-          </button>
+  <div class="results-page">
+    <div class="page-header">
+      <h1>Election Results</h1>
+      <p>View results for completed elections</p>
+    </div>
+
+    <div class="card">
+      <h2>Select Election</h2>
+      <select id="electionSelect" class="select-styled" onchange="loadResults()">
+        <option value="">-- Select Completed Election --</option>
+        <?php if (!empty($elections)): ?>
+          <?php foreach ($elections as $election): ?>
+            <option value="<?= $election['id'] ?>">
+              <?= htmlspecialchars($election['election_name'] ?? 'Untitled') ?>
+              (Completed: <?= htmlspecialchars(date('M d, Y', strtotime($election['end_date'] ?? ''))) ?>)
+            </option>
+          <?php endforeach; ?>
+        <?php endif; ?>
+      </select>
+
+      <div id="resultsContainer" style="display: none;">
+        <!-- Statistics -->
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <!-- Results Grid -->
+        <div class="results-grid">
+          <div>
+            <div class="results-details" id="resultsDetails"></div>
+          </div>
+          <div>
+            <div class="chart-container">
+              <canvas id="resultsChart"></canvas>
+            </div>
+          </div>
         </div>
 
-        <select id="resultsElectionSelect" class="select-styled" onchange="loadResults()">
-          <option value="">-- Select Election --</option>
-          <?php if (!empty($elections)): ?>
-            <?php foreach ($elections as $election): ?>
-              <option value="<?= $election['id'] ?>">
-                <?= htmlspecialchars($election['election_name'] ?? 'Untitled') ?>
-              </option>
-            <?php endforeach; ?>
-          <?php endif; ?>
-        </select>
+        <!-- Results by Position -->
+        <div id="resultsByPosition"></div>
 
-        <div id="resultsContainer" style="display: none;">
-          <!-- Statistics -->
-          <div class="stats-grid" id="statsGrid"></div>
-
-          <!-- Results Grid -->
-          <div class="results-grid">
-            <div>
-              <div class="results-details" id="resultsDetails"></div>
-            </div>
-            <div>
-              <div class="chart-container">
-                <canvas id="resultsChart"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Results by Position -->
-          <div id="resultsByPosition"></div>
-
-          <!-- Winners Section -->
-          <div class="card" id="winnersSection" style="display: none;">
-            <h3>🏆 Winners</h3>
-            <div id="winnersList"></div>
-          </div>
+        <!-- Winners Section -->
+        <div class="winners-section" id="winnersSection" style="display: none;">
+          <h3>🏆 Winners</h3>
+          <div id="winnersList"></div>
         </div>
       </div>
-    </main>
+
+      <div id="noResults" class="no-results" style="display: none;">
+        <div class="no-results-icon">📊</div>
+        <h3>No Results Available</h3>
+        <p>Please select a completed election to view results.</p>
+      </div>
+    </div>
   </div>
+
+  <?php require_once __DIR__ . '/../layouts/footer.php'; ?>
 
   <script>
     const BASE_URL = '<?= BASE_URL ?>';
     let resultsChartInstance = null;
-    let currentElectionId = null;
 
     function loadResults() {
-      const electionId = document.getElementById('resultsElectionSelect').value;
+      const electionId = document.getElementById('electionSelect').value;
       
       if (!electionId) {
         document.getElementById('resultsContainer').style.display = 'none';
-        document.getElementById('exportBtn').style.display = 'none';
+        document.getElementById('noResults').style.display = 'block';
         if (resultsChartInstance) {
           resultsChartInstance.destroy();
           resultsChartInstance = null;
@@ -371,10 +290,9 @@
         return;
       }
 
-      currentElectionId = electionId;
-      document.getElementById('exportBtn').style.display = 'inline-block';
+      document.getElementById('noResults').style.display = 'none';
 
-      fetch(`${BASE_URL}/admin/results-data?election_id=${electionId}`)
+      fetch(`${BASE_URL}/voter/results-data?election_id=${electionId}`)
         .then(response => response.json())
         .then(data => {
           if (!data.success) {
@@ -395,7 +313,6 @@
       const results = data.results || [];
       const resultsByPosition = data.resultsByPosition || {};
       const winners = data.winners || [];
-      const votingStats = data.votingStats || {};
       const totalVotes = data.totalVotes || 0;
 
       // Display statistics
@@ -406,7 +323,7 @@
           <p>Total Votes</p>
         </div>
         <div class="stat-card">
-          <h4>${data.totalCandidates || 0}</h4>
+          <h4>${results.length}</h4>
           <p>Candidates</p>
         </div>
         <div class="stat-card">
@@ -414,8 +331,8 @@
           <p>Positions</p>
         </div>
         <div class="stat-card">
-          <h4>${votingStats.total_voters || 0}</h4>
-          <p>Voters Participated</p>
+          <h4>${winners.length}</h4>
+          <p>Winners</p>
         </div>
       `;
 
@@ -423,7 +340,6 @@
       const detailsDiv = document.getElementById('resultsDetails');
       detailsDiv.innerHTML = `
         <h3>${election.election_name || 'Untitled Election'}</h3>
-        <p><strong>Status:</strong> <span style="text-transform: capitalize;">${election.status || 'N/A'}</span></p>
         <p><strong>Description:</strong> ${election.description || 'No description'}</p>
         <p><strong>Start Date:</strong> ${election.start_date || 'N/A'}</p>
         <p><strong>End Date:</strong> ${election.end_date || 'N/A'}</p>
@@ -550,7 +466,7 @@
         const winnersList = document.getElementById('winnersList');
         
         winnersList.innerHTML = winners.map(w => `
-          <div style="padding: 15px; margin-bottom: 10px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #27ae60;">
+          <div class="winner-item">
             <strong>${w.position}:</strong> ${w.candidate_name || 'N/A'} 
             (${w.party || 'Independent'}) - ${w.vote_count || 0} votes (${w.percentage || 0}%)
           </div>
@@ -562,21 +478,13 @@
       document.getElementById('resultsContainer').style.display = 'block';
     }
 
-    function exportResults() {
-      if (!currentElectionId) return;
-      
-      const format = prompt('Export format:\n1. JSON\n2. CSV\n\nEnter 1 or 2:', '1');
-      if (!format) return;
-      
-      const exportFormat = format === '2' ? 'csv' : 'json';
-      window.open(`${BASE_URL}/admin/export-results?election_id=${currentElectionId}&format=${exportFormat}`, '_blank');
-    }
-
-    // Initialize on page load
+    // Initialize
     document.addEventListener('DOMContentLoaded', () => {
-      // Results dropdown is already populated from PHP
+      const electionSelect = document.getElementById('electionSelect');
+      if (electionSelect.value === '') {
+        document.getElementById('noResults').style.display = 'block';
+      }
     });
   </script>
-</body>
-</html>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>
 

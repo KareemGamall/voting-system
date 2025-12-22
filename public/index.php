@@ -57,12 +57,23 @@ $router->post('/logout', 'AuthController', 'logout');
 $router->get('/admin/dashboard', 'AdminController', 'dashboard');
 $router->get('/admin/elections', 'AdminController', 'elections');
 $router->get('/admin/voters', 'AdminController', 'voters');
+$router->get('/admin/monitor', 'AdminController', 'monitor');
+$router->get('/admin/monitor-data/{id}', 'AdminController', 'monitorData');
 $router->post('/admin/save-election', 'AdminController', 'saveElection');
 $router->post('/admin/update-election', 'AdminController', 'updateElection');
 $router->get('/admin/get-election/{id}', 'AdminController', 'getElection');
 $router->post('/admin/delete-election/{id}', 'AdminController', 'deleteElection');
 $router->post('/admin/add-voter', 'AdminController', 'addVoter');
 $router->post('/admin/remove-voter', 'AdminController', 'removeVoter');
+
+// Define routes for Results Module
+$router->get('/admin/generate-results', 'ResultController', 'generateResults');
+$router->post('/admin/generate-results', 'ResultController', 'generateResultsAction');
+$router->get('/admin/results', 'ResultController', 'viewResults');
+$router->get('/admin/results-data', 'ResultController', 'getResultsData');
+$router->get('/admin/export-results', 'ResultController', 'exportResults');
+$router->get('/voter/results', 'ResultController', 'voterResults');
+$router->get('/voter/results-data', 'ResultController', 'getVoterResultsData');
 
 // Define routes for Voter Module
 $router->get('/voter/dashboard', 'VoterController', 'dashboard');
