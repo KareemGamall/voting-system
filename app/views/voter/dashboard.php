@@ -1,9 +1,9 @@
 <?php require_once __DIR__ . '/../layouts/header.php'; ?>
 <?php $user = Session::getUser(); ?>
 
-<div style="margin-bottom: 2rem;">
-    <h1 style="margin-bottom: 0.5rem;"><?= $data['title'] ?></h1>
-    <p style="color: #666; margin-top: 0;">Voter: <?= htmlspecialchars($user['name'] ?? 'User') ?></p>
+<div class="mb-4" style="margin-top: 2rem;">
+    <h1><?= $data['title'] ?></h1>
+    <p>Voter: <?= htmlspecialchars($user['name'] ?? 'User') ?></p>
 </div>
 
 <!-- Flash Messages -->
@@ -18,8 +18,10 @@
 <?php endif; ?>
 
 <!-- Active Elections -->
-<section style="margin-bottom: 3rem;">
-    <h2 style="margin-bottom: 1.5rem;">Active Elections</h2>
+<section class="elections-section" style="margin-bottom: 2rem;">
+    <div class="section-title">
+        <h2>Active Elections</h2>
+    </div>
 
     <?php if (!empty($data['activeElections'])): ?>
     <div class="elections-grid">
@@ -27,15 +29,16 @@
             <div class="election-card">
                 <div class="election-card-header">
                     <h3><?= htmlspecialchars($election['election_name']) ?></h3>
+                    <span class="status-badge status-active">Active</span>
                 </div>
                 <p class="election-description"><?= htmlspecialchars($election['description'] ?? '') ?></p>
                 <div class="election-details">
-                    <p><strong>Start:</strong> <?= date('M d, Y h:i A', strtotime($election['start_date'])) ?></p>
-                    <p><strong>End:</strong> <?= date('M d, Y h:i A', strtotime($election['end_date'])) ?></p>
+                    <span><strong>Start:</strong> <?= date('M d, Y h:i A', strtotime($election['start_date'])) ?></span>
+                    <span><strong>End:</strong> <?= date('M d, Y h:i A', strtotime($election['end_date'])) ?></span>
                 </div>
                 <div class="election-actions">
                     <?php if ($election['has_voted']): ?>
-                        <span class="btn btn-secondary" style="cursor: default;">✓ Already Voted</span>
+                        <span class="btn btn-secondary" style="width: 100%; cursor: default;">✓ Granted</span>
                     <?php else: ?>
                         <a href="<?= url('/voter/ballot') ?>?id=<?= $election['id'] ?>" class="btn btn-primary">Cast Your Vote</a>
                     <?php endif; ?>
@@ -44,25 +47,29 @@
         <?php endforeach; ?>
     </div>
     <?php else: ?>
-        <p>No active elections at this time. Check back later!</p>
+        <div class="text-center p-4">
+            <p>No active elections at this time.</p>
+        </div>
     <?php endif; ?>
 </section>
 
 <!-- Upcoming Elections -->
 <?php if (!empty($data['upcomingElections'])): ?>
-<section style="margin-bottom: 3rem;">
-    <h2 style="margin-bottom: 1.5rem;">Upcoming Elections</h2>
+<section class="elections-section mt-5">
+    <div class="section-title">
+        <h2>Upcoming Elections</h2>
+    </div>
     <div class="elections-grid">
         <?php foreach ($data['upcomingElections'] as $election): ?>
             <div class="election-card">
                 <div class="election-card-header">
                     <h3><?= htmlspecialchars($election['election_name']) ?></h3>
-                    <span class="status-badge">Upcoming</span>
+                    <span class="status-badge status-upcoming">Upcoming</span>
                 </div>
                 <p class="election-description"><?= htmlspecialchars($election['description'] ?? 'N/A') ?></p>
                 <div class="election-details">
-                    <p><strong>Start:</strong> <?= date('M d, Y h:i A', strtotime($election['start_date'])) ?></p>
-                    <p><strong>End:</strong> <?= date('M d, Y h:i A', strtotime($election['end_date'])) ?></p>
+                    <span><strong>Start:</strong> <?= date('M d, Y h:i A', strtotime($election['start_date'])) ?></span>
+                    <span><strong>End:</strong> <?= date('M d, Y h:i A', strtotime($election['end_date'])) ?></span>
                 </div>
             </div>
         <?php endforeach; ?>
@@ -71,14 +78,14 @@
 <?php endif; ?>
 
 <!-- Voting Guidelines -->
-<div class="feature-card" style="margin-top: 3rem;">
+<div class="feature-card mt-5" style="margin-bottom: 2rem;">
     <h3>Voting Guidelines</h3>
-    <ul>
-        <li>You can only vote <strong>once per election</strong>.</li>
-        <li>Make sure to review your selection before submitting.</li>
-        <li>Your vote is <strong>anonymous and secure</strong>.</li>
-        <li>Results will be available after the election closes.</li>
-        <li>If you face any issues, contact the election administrator.</li>
+    <ul style="list-style-position: inside; color: var(--text-muted);">
+        <li class="mb-1">You can only vote <strong>once per election</strong>.</li>
+        <li class="mb-1">Make sure to review your selection before submitting.</li>
+        <li class="mb-1">Your vote is <strong>anonymous and secure</strong>.</li>
+        <li class="mb-1">Results will be available after the election closes.</li>
+        <li class="mb-1">If you face any issues, contact the election administrator.</li>
     </ul>
 </div>
 

@@ -23,7 +23,7 @@
 
 <?php if (isset($isLoggedIn) && $isLoggedIn): ?>
     <!-- Available Elections Section -->
-    <section class="elections-section">
+    <section class="elections-section" style="margin-bottom: 2rem;">
         <h2 class="section-title">Available Elections</h2>
         <?php if (!empty($activeElections)): ?>
             <div class="elections-grid">

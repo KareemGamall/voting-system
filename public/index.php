@@ -40,6 +40,9 @@ require_once BASE_PATH . '/app/core/Router.php';
 // Autoload factories
 require_once BASE_PATH . '/app/factories/UserFactory.php';
 
+// Start session early to ensure session variables can be set
+Session::start();
+
 // Initialize router
 $router = new Router();
 
@@ -63,6 +66,16 @@ $router->get('/admin/get-election/{id}', 'AdminController', 'getElection');
 $router->post('/admin/delete-election/{id}', 'AdminController', 'deleteElection');
 $router->post('/admin/add-voter', 'AdminController', 'addVoter');
 $router->post('/admin/remove-voter', 'AdminController', 'removeVoter');
+$router->post('/admin/add-admin', 'AdminController', 'addAdmin');
+$router->post('/admin/remove-admin', 'AdminController', 'removeAdmin');
+
+// Define routes for Admin Monitor
+$router->get('/admin/monitor', 'AdminController', 'monitor');
+$router->get('/admin/monitor-data', 'AdminController', 'monitorData');
+$router->get('/admin/monitor-data/{id}', 'AdminController', 'monitorData');
+$router->get('/admin/results', 'AdminController', 'results');
+$router->get('/admin/results-data', 'AdminController', 'resultsData');
+$router->get('/admin/get-results/{id}', 'AdminController', 'getResults');
 
 // Define routes for Voter Module
 $router->get('/voter/dashboard', 'VoterController', 'dashboard');
@@ -70,6 +83,9 @@ $router->get('/voter/ballot', 'VoterController', 'ballot');
 $router->post('/voter/cast-vote', 'VoterController', 'castVote');
 $router->get('/voter/verify', 'VoterController', 'verify');
 $router->get('/voter/results', 'VoterController', 'results');
+$router->get('/voter/get-candidate-details', 'VoterController', 'getCandidateDetails');
+$router->get('/voter/get-election-stats', 'VoterController', 'getElectionStats');
+$router->get('/voter/get-election-details', 'VoterController', 'getElectionDetails');
 
 // Dispatch the request
 $router->dispatch();

@@ -3,237 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Voters - Voting System</title>
+  <title>Manage Users - Voting System</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="<?php echo asset('css/style.css'); ?>?v=<?php echo time(); ?>">
+  <link rel="stylesheet" href="<?php echo asset('css/admin.css'); ?>?v=<?php echo time(); ?>">
   <style>
-    /* ===== Reset & Base ===== */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Segoe UI', Roboto, sans-serif;
-      background: #f4f6f8;
-      color: #333;
-      min-height: 100vh;
-      display: flex;
-    }
-
-    /* ===== Layout ===== */
-    #app {
-      display: flex;
-      width: 100%;
-    }
-
-    #sidebar {
-      width: 240px;
-      background: #2c3e50;
-      color: #ecf0f1;
-      display: flex;
-      flex-direction: column;
-      transition: width 0.3s ease;
-    }
-
-    #sidebar:hover {
-      width: 260px;
-    }
-
-    #sidebar-header {
-      padding: 20px;
-      font-size: 20px;
-      font-weight: bold;
-      background: #1a252f;
-      text-align: center;
-    }
-
-    #sidebar-nav {
-      display: flex;
-      flex-direction: column;
-      padding: 10px;
-    }
-
-    #sidebar-nav a {
-      color: #ecf0f1;
-      text-decoration: none;
-      padding: 12px 18px;
-      margin: 6px 0;
-      border-radius: 8px;
-      transition: background 0.3s ease, transform 0.2s ease;
-    }
-
-    #sidebar-nav a:hover {
-      background: #34495e;
-      transform: translateX(5px);
-    }
-
-    #sidebar-nav a.active {
-      background: #3498db;
-      font-weight: bold;
-    }
-
-    #back-home-link {
-      margin-top: 20px;
-      border-top: 1px solid #34495e;
-      padding-top: 12px;
-      color: #ecf0f1;
-    }
-
-    #back-home-link:hover {
-      color: #3498db;
-    }
-
-    #main-content {
-      flex: 1;
-      padding: 30px;
-      background: #f9fafc;
-      overflow-y: auto;
-    }
-
-    /* ===== Page Transitions ===== */
-    .page {
-      display: none;
-      animation: fadeIn 0.4s ease;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ===== Cards ===== */
-    .card {
-      background: #fff;
-      border-radius: 14px;
-      padding: 25px;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-      margin-bottom: 30px;
-      transition: transform 0.2s ease;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-    }
-
-    /* ===== Form Styles ===== */
-    .form-card input,
-    .form-card select,
-    .form-card textarea {
-      width: 100%;
-      padding: 12px;
-      margin-top: 6px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .form-card input:focus,
-    .form-card select:focus,
-    .form-card textarea:focus {
-      border-color: #3498db;
-      box-shadow: 0 0 6px rgba(52, 152, 219, 0.4);
-      outline: none;
-    }
-
-    /* ===== Buttons ===== */
-    button {
-      cursor: pointer;
-      border: none;
-      transition: background 0.3s ease, transform 0.2s ease;
-    }
-
-    .btn-primary {
-      background: #3498db;
-      color: #fff;
-      padding: 10px 18px;
-      border-radius: 6px;
-    }
-
-    .btn-primary:hover {
-      background: #2980b9;
-      transform: translateY(-2px);
-    }
-
-    .btn-secondary {
-      background: #bdc3c7;
-      color: #333;
-      padding: 10px 18px;
-      border-radius: 6px;
-    }
-
-    .btn-secondary:hover {
-      background: #95a5a6;
-      transform: translateY(-2px);
-    }
-
-    .btn-success {
-      background: #2ecc71;
-      color: #fff;
-      padding: 8px 14px;
-      border-radius: 6px;
-    }
-
-    .btn-success:hover {
-      background: #27ae60;
-      transform: translateY(-2px);
-    }
-
-    .btn-small {
-      padding: 6px 10px;
-      font-size: 12px;
-    }
-
-    /* ===== Voter Items ===== */
-    .voter-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f9f9f9;
-      padding: 8px 12px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      transition: background 0.3s ease;
-    }
-
-    .voter-item:hover {
-      background: #eef2f7;
-    }
-
-    .voter-input-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr auto;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    /* ===== Responsive ===== */
-    @media (max-width: 768px) {
-      #app {
-        flex-direction: column;
+      /* Page specific tab styles that didn't fit into generic admin.css easily */
+      .tabs {
+          display: flex;
+          border-bottom: 2px solid var(--border-color);
+          margin-bottom: 1.5rem;
       }
-
-      #sidebar {
-        width: 100%;
-        flex-direction: row;
-        overflow-x: auto;
+      .tab {
+          padding: 0.75rem 1.5rem;
+          cursor: pointer;
+          background: transparent;
+          border: none;
+          border-bottom: 2px solid transparent;
+          font-size: 1rem;
+          font-weight: 500;
+          color: var(--text-muted);
+          transition: var(--transition-fast);
       }
-
-      #sidebar-nav {
-        flex-direction: row;
-        justify-content: space-around;
+      .tab:hover {
+          color: var(--primary);
       }
-
-      .voter-input-grid {
-        grid-template-columns: 1fr;
+      .tab.active {
+          color: var(--primary);
+          border-bottom-color: var(--primary);
       }
-    }
+      .tab-content {
+          display: none;
+      }
+      .tab-content.active {
+          display: block;
+          animation: fadeIn 0.3s ease-out;
+      }
   </style>
 </head>
 <body>
@@ -243,23 +48,63 @@
     <main id="main-content">
       <section id="manageVotersPage" class="page active">
         <div class="card form-card">
-          <h2>Manage Voters</h2>
-          <div class="voter-input-grid">
-            <input type="text" id="voterName" placeholder="Full Name">
-            <input type="text" id="voterEmail" placeholder="Email or Student ID">
-            <button onclick="addVoterAjax()" class="btn-success">Add Voter</button>
+          <h2>Manage Users</h2>
+          
+          <!-- Tabs -->
+          <div class="tabs">
+            <button class="tab active" onclick="switchTab('voters', this)">Voters</button>
+            <button class="tab" onclick="switchTab('admins', this)">Admins</button>
           </div>
-          <div id="votersList">
-            <?php if (!empty($data['voters'])): ?>
-              <?php foreach ($data['voters'] as $voter): ?>
-                <div class="voter-item">
-                  <?= htmlspecialchars($voter['name']) ?> (<?= htmlspecialchars($voter['email']) ?>)
-                  <button onclick="removeVoterAjax(<?= $voter['id'] ?>)" class="btn-secondary btn-small">Remove</button>
-                </div>
-              <?php endforeach; ?>
-            <?php else: ?>
-              <p>No voters found.</p>
-            <?php endif; ?>
+
+          <!-- Voters Tab -->
+          <div id="votersTab" class="tab-content active">
+            <h3>Manage Voters</h3>
+            <div class="voter-input-grid">
+              <input type="text" id="voterName" placeholder="Full Name">
+              <input type="text" id="voterEmail" placeholder="Email">
+              <button onclick="addVoterAjax()" class="btn btn-primary" style="background-color: var(--success); width: 100%;">Add Voter</button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">
+              Default password: <strong>voter123</strong> (user should change it after first login)
+            </p>
+            <div id="votersList">
+              <?php if (!empty($data['voters'])): ?>
+                <?php foreach ($data['voters'] as $voter): ?>
+                  <div class="voter-item">
+                    <span><?= htmlspecialchars($voter['name']) ?> (<?= htmlspecialchars($voter['email']) ?>)</span>
+                    <button onclick="removeVoterAjax(<?= $voter['id'] ?>)" class="btn btn-secondary btn-small">Remove</button>
+                  </div>
+                <?php endforeach; ?>
+              <?php else: ?>
+                <p>No voters found.</p>
+              <?php endif; ?>
+            </div>
+          </div>
+
+          <!-- Admins Tab -->
+          <div id="adminsTab" class="tab-content">
+            <h3>Manage Admins</h3>
+            <div class="voter-input-grid" style="grid-template-columns: 1fr 1fr 1fr auto;">
+              <input type="text" id="adminName" placeholder="Full Name">
+              <input type="text" id="adminEmail" placeholder="Email">
+              <input type="password" id="adminPassword" placeholder="Password (optional)">
+              <button onclick="addAdminAjax()" class="btn btn-primary" style="background-color: var(--success); width: 100%;">Add Admin</button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">
+              If password is not provided, default password will be: <strong>admin123</strong>
+            </p>
+            <div id="adminsList">
+              <?php if (!empty($data['admins'])): ?>
+                <?php foreach ($data['admins'] as $admin): ?>
+                  <div class="admin-item">
+                    <span><?= htmlspecialchars($admin['name']) ?> (<?= htmlspecialchars($admin['email']) ?>)</span>
+                    <button onclick="removeAdminAjax(<?= $admin['id'] ?>)" class="btn btn-secondary btn-small">Remove</button>
+                  </div>
+                <?php endforeach; ?>
+              <?php else: ?>
+                <p>No admins found.</p>
+              <?php endif; ?>
+            </div>
           </div>
         </div>
       </section>
@@ -269,6 +114,26 @@
   <script>
     // ===== Configuration =====
     const BASE_URL = '<?= BASE_URL ?>';
+
+    // ===== Tabs =====
+    function switchTab(tabName, buttonElement) {
+      // Update tab buttons
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      if (buttonElement) {
+        buttonElement.classList.add('active');
+      }
+      
+      // Update tab content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      const targetTab = document.getElementById(tabName + 'Tab');
+      if (targetTab) {
+        targetTab.classList.add('active');
+      }
+    }
 
     // ===== Voters =====
     function addVoterAjax() {
@@ -331,6 +196,76 @@
       .catch(error => {
         console.error("Error:", error);
         alert("An error occurred while removing voter");
+      });
+    }
+
+    // ===== Admins =====
+    function addAdminAjax() {
+      const nameEl = document.getElementById("adminName");
+      const emailEl = document.getElementById("adminEmail");
+      const passwordEl = document.getElementById("adminPassword");
+      if (!nameEl || !emailEl) return;
+      
+      const name = nameEl.value.trim();
+      const email = emailEl.value.trim();
+      const password = passwordEl ? passwordEl.value.trim() : '';
+
+      if (!name || !email) {
+        alert("Name and email are required.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('email', email);
+      if (password) {
+        formData.append('password', password);
+      }
+
+      fetch(BASE_URL + '/admin/add-admin', {
+        method: 'POST',
+        body: formData
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          alert("Admin added successfully!");
+          nameEl.value = "";
+          emailEl.value = "";
+          if (passwordEl) passwordEl.value = "";
+          location.reload();
+        } else {
+          alert("Error: " + (data.message || "Failed to add admin"));
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("An error occurred while adding admin");
+      });
+    }
+
+    function removeAdminAjax(adminId) {
+      if (!confirm("Remove this admin? You cannot delete your own account.")) return;
+
+      const formData = new FormData();
+      formData.append('admin_id', adminId);
+
+      fetch(BASE_URL + '/admin/remove-admin', {
+        method: 'POST',
+        body: formData
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          alert("Admin removed successfully!");
+          location.reload();
+        } else {
+          alert("Error: " + (data.message || "Failed to remove admin"));
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("An error occurred while removing admin");
       });
     }
   </script>

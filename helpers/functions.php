@@ -34,6 +34,6 @@ function asset($path) {
     // Remove leading slash if present
     $path = ltrim($path, '/');
     
-    return $baseUrl . '/public/' . $path;
+    return $baseUrl . '/' . $path;
 }
 

@@ -101,11 +101,13 @@ class AdminController extends Controller {
         Session::start();
         
         $voters = $this->userModel->getByRole('voter');
+        $admins = $this->userModel->getByRole('admin');
         
         $data = [
-            'title' => 'Manage Voters',
+            'title' => 'Manage Users',
             'user' => Session::getUser(),
-            'voters' => $voters ?: []
+            'voters' => $voters ?: [],
+            'admins' => $admins ?: []
         ];
         
         $this->view('admin/voters', $data);
@@ -401,12 +403,22 @@ class AdminController extends Controller {
         $email = $_POST['email'] ?? '';
         
         if (!$name || !$email) {
-            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            echo json_encode(['success' => false, 'message' => 'Name and email are required']);
             exit;
         }
         
+        // Check if email already exists
+        if ($this->userModel->findByEmail($email)) {
+            echo json_encode(['success' => false, 'message' => 'Email already exists']);
+            exit;
+        }
+        
+        // Generate unique user ID
+        $userId = 'USR-' . time() . '-' . rand(1000, 9999);
+        
         // Create voter account
         $voterId = $this->userModel->create([
+            'user_id' => $userId,
             'name' => $name,
             'email' => $email,
             'password' => password_hash('voter123', PASSWORD_BCRYPT),
@@ -414,7 +426,11 @@ class AdminController extends Controller {
             'is_voter' => 1
         ]);
         
-        echo json_encode(['success' => true, 'voter_id' => $voterId]);
+        if ($voterId) {
+            echo json_encode(['success' => true, 'voter_id' => $voterId, 'message' => 'Voter account created successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to create voter account']);
+        }
         exit;
     }
     
@@ -440,6 +456,82 @@ class AdminController extends Controller {
     }
     
     /**
+     * Add admin (AJAX)
+     */
+    public function addAdmin() {
+        if (!$this->isAdmin() || $_SERVER['REQUEST_METHOD'] !== 'POST') return;
+        
+        header('Content-Type: application/json');
+        
+        $name = $_POST['name'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $password = $_POST['password'] ?? '';
+        
+        if (!$name || !$email) {
+            echo json_encode(['success' => false, 'message' => 'Name and email are required']);
+            exit;
+        }
+        
+        // Check if email already exists
+        if ($this->userModel->findByEmail($email)) {
+            echo json_encode(['success' => false, 'message' => 'Email already exists']);
+            exit;
+        }
+        
+        // Generate unique user ID
+        $userId = 'USR-' . time() . '-' . rand(1000, 9999);
+        
+        // If password is provided, use it; otherwise generate default
+        $hashedPassword = $password ? password_hash($password, PASSWORD_BCRYPT) : password_hash('admin123', PASSWORD_BCRYPT);
+        
+        // Create admin account
+        $adminId = $this->userModel->create([
+            'user_id' => $userId,
+            'name' => $name,
+            'email' => $email,
+            'password' => $hashedPassword,
+            'is_admin' => 1,
+            'is_voter' => 0
+        ]);
+        
+        if ($adminId) {
+            echo json_encode(['success' => true, 'admin_id' => $adminId, 'message' => 'Admin account created successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to create admin account']);
+        }
+        exit;
+    }
+    
+    /**
+     * Remove admin (AJAX)
+     */
+    public function removeAdmin() {
+        if (!$this->isAdmin() || $_SERVER['REQUEST_METHOD'] !== 'POST') return;
+        
+        header('Content-Type: application/json');
+        
+        $adminId = $_POST['admin_id'] ?? 0;
+        
+        if (!$adminId) {
+            echo json_encode(['success' => false, 'message' => 'Invalid admin ID']);
+            exit;
+        }
+        
+        // Prevent deleting yourself
+        Session::start();
+        $currentUser = Session::getUser();
+        if ($currentUser && $currentUser['id'] == $adminId) {
+            echo json_encode(['success' => false, 'message' => 'You cannot delete your own account']);
+            exit;
+        }
+        
+        $this->userModel->delete($adminId);
+        
+        echo json_encode(['success' => true]);
+        exit;
+    }
+    
+    /**
      * Live Monitor Page
      */
     public function monitor() {
@@ -458,7 +550,7 @@ class AdminController extends Controller {
     /**
      * Monitor Data API (AJAX)
      */
-    public function monitorData($electionId = null) {
+    public function monitorData() {
         if (!$this->isAdmin()) {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
@@ -466,6 +558,9 @@ class AdminController extends Controller {
         }
         
         header('Content-Type: application/json');
+        
+        // Get election ID from URL parameter or GET parameter
+        $electionId = $_GET['id'] ?? null;
         
         if ($electionId) {
             // Get specific election data

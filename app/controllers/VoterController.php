@@ -141,8 +141,11 @@ class VoterController extends Controller {
      * Cast Vote - Process the submitted vote
      */
     public function castVote() {
+        file_put_contents('debug_log.txt', "DEBUG: castVote() method ENTERED\n", FILE_APPEND);
+        
         // Check if user is logged in as voter
         if (!Session::isLoggedIn() || !Session::isVoter()) {
+            file_put_contents('debug_log.txt', "DEBUG: Not logged in or not voter\n", FILE_APPEND);
             $this->setFlash('error', 'Access denied. Voter login required.');
             $this->redirect('/auth/login');
             return;
@@ -150,16 +153,36 @@ class VoterController extends Controller {
         
         // Only accept POST requests
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            file_put_contents('debug_log.txt', "DEBUG: Not a POST request\n", FILE_APPEND);
             $this->redirect('/voter/dashboard');
             return;
         }
         
         $electionId = $_POST['election_id'] ?? null;
         $candidates = $_POST['candidates'] ?? null;
-        $userId = Session::get('user_id');
+        $user = Session::getUser();
+        $userId = $user['id'] ?? null;
         
-        // Validate input - handle both single and multiple candidates
-        if (!$electionId || empty($candidates)) {
+        file_put_contents('debug_log.txt', "DEBUG: ElectionID: $electionId, UserID: $userId\n", FILE_APPEND);
+        
+        if (!$userId) {
+            file_put_contents('debug_log.txt', "DEBUG: No user ID found\n", FILE_APPEND);
+            $this->setFlash('error', 'User not found in session.');
+            $this->redirect('/auth/login');
+            return;
+        }
+        
+        // Validate election ID
+        if (!$electionId) {
+            file_put_contents('debug_log.txt', "DEBUG: No election ID\n", FILE_APPEND);
+            $this->setFlash('error', 'Invalid election.');
+            $this->redirect('/voter/dashboard');
+            return;
+        }
+        
+        // Validate input - must have candidate selections
+        if (!is_array($candidates) || empty($candidates)) {
+            file_put_contents('debug_log.txt', "DEBUG: No candidates selected\n", FILE_APPEND);
             $this->setFlash('error', 'Invalid vote submission. Please select a candidate for each position.');
             $this->redirect('/voter/ballot?id=' . $electionId);
             return;
@@ -167,6 +190,7 @@ class VoterController extends Controller {
         
         // Check if user has already voted
         if ($this->voteModel->hasVoted($electionId, $userId)) {
+            file_put_contents('debug_log.txt', "DEBUG: Already voted check true\n", FILE_APPEND);
             $this->setFlash('error', 'You have already voted in this election.');
             $this->redirect('/voter/dashboard');
             return;
@@ -176,23 +200,42 @@ class VoterController extends Controller {
         $election = $this->electionModel->find($electionId);
         $now = date('Y-m-d H:i:s');
         
-        if (!$election || $election['status'] !== 'active' || $now < $election['start_date'] || $now > $election['end_date']) {
-            $this->setFlash('error', 'This election is not currently accepting votes.');
+        if (!$election) {
+            file_put_contents('debug_log.txt', "DEBUG: Election not found in DB\n", FILE_APPEND);
+            $this->setFlash('error', 'Election not found.');
             $this->redirect('/voter/dashboard');
             return;
         }
         
-        // Convert to array if single candidate (for compatibility)
-        if (!is_array($candidates)) {
-            $candidates = [$candidates];
+        if ($election['status'] !== 'active' && $now < $election['start_date']) {
+            file_put_contents('debug_log.txt', "DEBUG: Election not started\n", FILE_APPEND);
+            $this->setFlash('error', 'This election has not started yet.');
+            $this->redirect('/voter/dashboard');
+            return;
+        }
+        
+        if ($now > $election['end_date']) {
+            file_put_contents('debug_log.txt', "DEBUG: Election ended\n", FILE_APPEND);
+            $this->setFlash('error', 'This election has already ended.');
+            $this->redirect('/voter/dashboard');
+            return;
         }
         
         // Verify all candidates belong to this election
         $selectedCandidates = [];
         foreach ($candidates as $position => $candidateId) {
+            // Skip if not selected
+            if (empty($candidateId)) {
+                file_put_contents('debug_log.txt', "DEBUG: Empty candidate selection for position $position\n", FILE_APPEND);
+                $this->setFlash('error', 'Please select a candidate for each position.');
+                $this->redirect('/voter/ballot?id=' . $electionId);
+                return;
+            }
+            
             $candidate = $this->candidateModel->find($candidateId);
             
             if (!$candidate || $candidate['election_id'] != $electionId) {
+                file_put_contents('debug_log.txt', "DEBUG: Invalid candidate or wrong election\n", FILE_APPEND);
                 $this->setFlash('error', 'Invalid candidate selection.');
                 $this->redirect('/voter/ballot?id=' . $electionId);
                 return;
@@ -203,10 +246,24 @@ class VoterController extends Controller {
         
         // Cast votes for all selected candidates
         $allVotesSuccessful = true;
+        $failureReason = '';
+        
         foreach ($selectedCandidates as $candidate) {
-            $voteResult = $this->voteModel->castVote($electionId, $candidate['id'], $userId);
-            if (!$voteResult) {
+            try {
+                $voteResult = $this->voteModel->castVote($electionId, $candidate['id'], $userId);
+                if (!$voteResult) {
+                    $allVotesSuccessful = false;
+                    $failureReason = 'Failed to record vote for ' . htmlspecialchars($candidate['name']);
+                    break;
+                }
+            } catch (Exception $e) {
+                // Handle duplicate vote or other database errors gracefully
                 $allVotesSuccessful = false;
+                if (strpos($e->getMessage(), 'Duplicate entry') !== false || strpos($e->getMessage(), 'unique_vote') !== false) {
+                    $failureReason = 'You have already voted in this election. Duplicate entries are not allowed.';
+                } else {
+                    $failureReason = 'An error occurred while recording your vote: ' . $e->getMessage();
+                }
                 break;
             }
         }
@@ -215,16 +272,25 @@ class VoterController extends Controller {
             // Get vote details for confirmation
             $voteData = [
                 'election' => $election,
-                'candidate' => $selectedCandidates[0], // Show first candidate for confirmation
                 'candidates' => $selectedCandidates,
+                'vote_count' => count($selectedCandidates),
                 'vote_time' => date('Y-m-d H:i:s')
             ];
             
-            $this->setFlash('success', 'Your vote has been successfully recorded!');
+            // Set session data before flash message
             Session::set('vote_confirmation', $voteData);
+            file_put_contents('debug_log.txt', "Vote successful. Session data set. Key: vote_confirmation\n", FILE_APPEND);
+            
+            $this->setFlash('success', 'Your vote has been successfully recorded!');
+            
+            // Ensure session is written before redirect to prevent data loss
+            session_write_close();
+            
+            file_put_contents('debug_log.txt', "Redirecting to verify...\n", FILE_APPEND);
             $this->redirect('/voter/verify');
         } else {
-            $this->setFlash('error', 'Failed to cast vote. Please try again.');
+            file_put_contents('debug_log.txt', "Vote failed: $failureReason\n", FILE_APPEND);
+            $this->setFlash('error', $failureReason ?: 'Failed to cast vote. Please try again.');
             $this->redirect('/voter/ballot?id=' . $electionId);
         }
     }
@@ -244,10 +310,13 @@ class VoterController extends Controller {
         $voteData = Session::get('vote_confirmation');
         
         if (!$voteData) {
+            file_put_contents('debug_log.txt', "Verify failed: No session data found.\n", FILE_APPEND);
             $this->setFlash('error', 'No vote confirmation found.');
             $this->redirect('/voter/dashboard');
             return;
         }
+        
+        file_put_contents('debug_log.txt', "Verify success: Session data found.\n", FILE_APPEND);
         
         $data = [
             'title' => 'Vote Confirmation',
@@ -288,23 +357,153 @@ class VoterController extends Controller {
             return;
         }
         
-        // Only show results for completed elections
+        // Only show results for completed elections (or allow viewing during active elections if configured)
         if ($election['status'] !== 'completed') {
             $this->setFlash('error', 'Results are only available for completed elections.');
             $this->redirect('/voter/dashboard');
             return;
         }
         
-        // Sort candidates by vote count
+        // Calculate total votes
+        $totalVotes = 0;
+        foreach ($election['candidates'] as $candidate) {
+            $totalVotes += $candidate['vote_count'] ?? 0;
+        }
+        
+        // Sort candidates by vote count and calculate percentages
         usort($election['candidates'], function($a, $b) {
-            return $b['vote_count'] - $a['vote_count'];
+            return ($b['vote_count'] ?? 0) - ($a['vote_count'] ?? 0);
         });
+        
+        // Add percentages
+        foreach ($election['candidates'] as &$candidate) {
+            $candidate['percentage'] = $totalVotes > 0 
+                ? round(($candidate['vote_count'] / $totalVotes) * 100, 2)
+                : 0;
+        }
         
         $data = [
             'title' => 'Election Results - ' . $election['election_name'],
-            'election' => $election
+            'election' => $election,
+            'totalVotes' => $totalVotes
         ];
         
         $this->view('voter/results', $data);
+    }
+    
+    /**
+     * Get candidate details with vote count
+     * Used for AJAX requests or internal data retrieval
+     * 
+     * @param int $candidateId
+     */
+    public function getCandidateDetails() {
+        // Check if user is logged in as voter
+        if (!Session::isLoggedIn() || !Session::isVoter()) {
+            http_response_code(403);
+            echo json_encode(['error' => 'Unauthorized']);
+            return;
+        }
+        
+        $candidateId = $_GET['id'] ?? null;
+        
+        if (!$candidateId) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid candidate ID']);
+            return;
+        }
+        
+        $candidate = $this->candidateModel->find($candidateId);
+        
+        if (!$candidate) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Candidate not found']);
+            return;
+        }
+        
+        // Return candidate details as JSON
+        header('Content-Type: application/json');
+        echo json_encode($candidate);
+    }
+    
+    /**
+     * Get election voting statistics
+     * Shows live voting statistics during active elections
+     */
+    public function getElectionStats() {
+        // Check if user is logged in as voter
+        if (!Session::isLoggedIn() || !Session::isVoter()) {
+            http_response_code(403);
+            echo json_encode(['error' => 'Unauthorized']);
+            return;
+        }
+        
+        $electionId = $_GET['id'] ?? null;
+        
+        if (!$electionId) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid election ID']);
+            return;
+        }
+        
+        $election = $this->electionModel->find($electionId);
+        
+        if (!$election) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Election not found']);
+            return;
+        }
+        
+        // Get voting statistics
+        $votingStats = $this->voteModel->getElectionVotingStats($electionId);
+        $electionStats = $this->electionModel->getElectionStats($electionId);
+        
+        // Combine statistics
+        $stats = [
+            'election' => $electionStats,
+            'voting' => $votingStats,
+            'status' => $election['status'],
+            'start_date' => $election['start_date'],
+            'end_date' => $election['end_date']
+        ];
+        
+        header('Content-Type: application/json');
+        echo json_encode($stats);
+    }
+    
+    /**
+     * Get election with all details and candidates
+     * Useful for partial page updates
+     */
+    public function getElectionDetails() {
+        // Check if user is logged in as voter
+        if (!Session::isLoggedIn() || !Session::isVoter()) {
+            http_response_code(403);
+            echo json_encode(['error' => 'Unauthorized']);
+            return;
+        }
+        
+        $electionId = $_GET['id'] ?? null;
+        
+        if (!$electionId) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid election ID']);
+            return;
+        }
+        
+        $election = $this->electionModel->getElectionWithCandidates($electionId);
+        
+        if (!$election) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Election not found']);
+            return;
+        }
+        
+        $userId = Session::get('user_id');
+        $election['has_voted'] = $this->voteModel->hasVoted($electionId, $userId);
+        $election['is_active'] = $this->electionModel->isActive($electionId);
+        
+        header('Content-Type: application/json');
+        echo json_encode($election);
     }
 }

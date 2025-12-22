@@ -45,8 +45,12 @@ class Router {
         $uri = $this->getUri();
         $method = $_SERVER['REQUEST_METHOD'];
         
+        file_put_contents('debug_log.txt', "DEBUG Router: URI=" . $uri . ", Method=" . $method . "\n", FILE_APPEND);
+        
         foreach ($this->routes as $route) {
             if ($this->matchRoute($route, $uri, $method)) {
+                file_put_contents('debug_log.txt', "DEBUG Router: Route matched - " . $route['controller'] . "::" . $route['action'] . "\n", FILE_APPEND);
+                
                 $controllerName = $route['controller'];
                 $action = $route['action'];
                 
@@ -68,6 +72,7 @@ class Router {
             }
         }
         
+        file_put_contents('debug_log.txt', "DEBUG Router: No route matched, calling 404\n", FILE_APPEND);
         // 404 - Route not found
         $this->handle404();
     }

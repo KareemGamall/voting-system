@@ -1,0 +1,302 @@
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home
+DEBUG Router: URI=/logout, Method=GET
+DEBUG Router: Route matched - AuthController::logout
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home
+DEBUG Router: URI=/login, Method=GET
+DEBUG Router: Route matched - AuthController::login
+DEBUG Router: URI=/login, Method=POST
+DEBUG Router: Route matched - AuthController::login
+DEBUG Router: URI=/login, Method=GET
+DEBUG Router: Route matched - AuthController::login
+DEBUG Router: URI=/login, Method=POST
+DEBUG Router: Route matched - AuthController::login
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/voters, Method=GET
+DEBUG Router: Route matched - AdminController::voters
+DEBUG Router: URI=/admin/monitor, Method=GET
+DEBUG Router: Route matched - AdminController::monitor
+DEBUG Router: URI=/admin/monitor-data, Method=GET
+DEBUG Router: Route matched - AdminController::monitorData
+DEBUG Router: URI=/admin/results, Method=GET
+DEBUG Router: Route matched - AdminController::results
+DEBUG Router: URI=/admin/results-data, Method=GET
+DEBUG Router: Route matched - AdminController::resultsData
+DEBUG Router: URI=/admin/results, Method=GET
+DEBUG Router: Route matched - AdminController::results
+DEBUG Router: URI=/admin/results-data, Method=GET
+DEBUG Router: Route matched - AdminController::resultsData
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/voters, Method=GET
+DEBUG Router: Route matched - AdminController::voters
+DEBUG Router: URI=/admin/voters, Method=GET
+DEBUG Router: Route matched - AdminController::voters
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/voters, Method=GET
+DEBUG Router: Route matched - AdminController::voters
+DEBUG Router: URI=/admin/monitor, Method=GET
+DEBUG Router: Route matched - AdminController::monitor
+DEBUG Router: URI=/admin/monitor-data, Method=GET
+DEBUG Router: Route matched - AdminController::monitorData
+DEBUG Router: URI=/admin/results, Method=GET
+DEBUG Router: Route matched - AdminController::results
+DEBUG Router: URI=/admin/results-data, Method=GET
+DEBUG Router: Route matched - AdminController::resultsData
+DEBUG Router: URI=/admin/voters, Method=GET
+DEBUG Router: Route matched - AdminController::voters
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home
+DEBUG Router: URI=/logout, Method=GET
+DEBUG Router: Route matched - AuthController::logout
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home
+DEBUG Router: URI=/login, Method=GET
+DEBUG Router: Route matched - AuthController::login
+DEBUG Router: URI=/login, Method=POST
+DEBUG Router: Route matched - AuthController::login
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home
+DEBUG Router: URI=/voter/ballot, Method=GET
+DEBUG Router: Route matched - VoterController::ballot
+DEBUG Router: URI=/voter/dashboard, Method=GET
+DEBUG Router: Route matched - VoterController::dashboard
+DEBUG Router: URI=/logout, Method=GET
+DEBUG Router: Route matched - AuthController::logout
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home
+DEBUG Router: URI=/login, Method=GET
+DEBUG Router: Route matched - AuthController::login
+DEBUG Router: URI=/login, Method=POST
+DEBUG Router: Route matched - AuthController::login
+DEBUG Router: URI=/admin/dashboard, Method=GET
+DEBUG Router: Route matched - AdminController::dashboard
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/admin/delete-election/4, Method=POST
+DEBUG Router: Route matched - AdminController::deleteElection
+DEBUG Router: URI=/admin/elections, Method=GET
+DEBUG Router: Route matched - AdminController::elections
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home
+DEBUG Router: URI=/logout, Method=GET
+DEBUG Router: Route matched - AuthController::logout
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home
+DEBUG Router: URI=/login, Method=GET
+DEBUG Router: Route matched - AuthController::login
+DEBUG Router: URI=/login, Method=POST
+DEBUG Router: Route matched - AuthController::login
+DEBUG Router: URI=/, Method=GET
+DEBUG Router: Route matched - AuthController::home

@@ -49,6 +49,15 @@ abstract class Controller {
             $baseUrl = defined('BASE_URL') ? BASE_URL : '';
             $url = $baseUrl . $url;
         }
+        
+        // Clear any output buffers to prevent "headers already sent" errors
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        error_log("DEBUG: Redirecting to: " . $url);
+        error_log("DEBUG: Headers sent: " . (headers_sent() ? 'YES' : 'NO'));
+        
         header("Location: " . $url);
         exit();
     }
