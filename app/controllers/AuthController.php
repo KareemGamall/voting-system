@@ -38,6 +38,10 @@ class AuthController extends Controller {
         if (Session::isLoggedIn()) {
             require_once __DIR__ . '/../models/Election.php';
             $electionModel = new Election();
+            
+            // Update election statuses to ensure accuracy
+            $electionModel->updateElectionStatuses();
+            
             $activeElections = $electionModel->getLatestElections(6);
             
             // Check which elections the voter has already voted in

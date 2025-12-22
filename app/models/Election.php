@@ -14,6 +14,33 @@ class Election extends Model {
     public $candidates = [];
     
     /**
+     * Get all elections with updated statuses
+     * Override parent getAll to ensure statuses are current
+     * 
+     * @return array
+     */
+    public function getAll() {
+        // Update election statuses first to ensure accuracy
+        $this->updateElectionStatuses();
+        
+        return parent::getAll();
+    }
+    
+    /**
+     * Find election by ID with updated status
+     * Override parent find to ensure status is current
+     * 
+     * @param int $id
+     * @return array|false
+     */
+    public function find($id) {
+        // Update election statuses first to ensure accuracy
+        $this->updateElectionStatuses();
+        
+        return parent::find($id);
+    }
+    
+    /**
      * Create a new election
      * 
      * @param array $electionData
@@ -49,13 +76,14 @@ class Election extends Model {
      * @return array
      */
     public function getActiveElections() {
-        $now = date('Y-m-d H:i:s');
+        // Update election statuses first to ensure accuracy
+        $this->updateElectionStatuses();
+        
         $sql = "SELECT * FROM {$this->table} 
-                WHERE status = 'active' 
-                OR (start_date <= :now1 AND end_date >= :now2)
+                WHERE status = 'active'
                 ORDER BY start_date DESC";
         
-        return $this->query($sql, ['now1' => $now, 'now2' => $now]);
+        return $this->query($sql);
     }
     
     /**
@@ -65,6 +93,9 @@ class Election extends Model {
      * @return array
      */
     public function getLatestElections($limit = 6) {
+        // Update election statuses first to ensure accuracy
+        $this->updateElectionStatuses();
+        
         $sql = "SELECT * FROM {$this->table} 
                 WHERE status IN ('active', 'upcoming')
                 ORDER BY created_at DESC, start_date DESC
@@ -82,12 +113,14 @@ class Election extends Model {
      * @return array
      */
     public function getUpcomingElections() {
-        $now = date('Y-m-d H:i:s');
+        // Update statuses first to ensure accuracy
+        $this->updateElectionStatuses();
+        
         $sql = "SELECT * FROM {$this->table} 
                 WHERE status = 'upcoming' 
-                AND start_date > :now";
+                ORDER BY start_date ASC";
         
-        return $this->query($sql, ['now' => $now]);
+        return $this->query($sql);
     }
     
     /**
@@ -96,16 +129,21 @@ class Election extends Model {
      * @return array
      */
     public function getCompletedElections() {
+        // Update statuses first to ensure accuracy
+        $this->updateElectionStatuses();
+        
         return $this->where('status = :status', ['status' => 'completed']);
     }
     
     /**
      * Get election with candidates
+     * Note: Uses overridden find() which updates statuses
      * 
      * @param int $id
      * @return array|false
      */
     public function getElectionWithCandidates($id) {
+        // find() now automatically updates statuses
         $election = $this->find($id);
         
         if (!$election) {
@@ -121,11 +159,13 @@ class Election extends Model {
     
     /**
      * Check if election is active
+     * Note: find() automatically updates statuses
      * 
      * @param int $id
      * @return bool
      */
     public function isActive($id) {
+        // find() already updates statuses
         $election = $this->find($id);
         
         if (!$election) {
@@ -156,6 +196,9 @@ class Election extends Model {
      * @return array|false
      */
     public function findByElectionId($electionId) {
+        // Update statuses first to ensure accuracy
+        $this->updateElectionStatuses();
+        
         return $this->findWhere('election_id = :election_id', ['election_id' => $electionId]);
     }
     
@@ -176,20 +219,29 @@ class Election extends Model {
     public function updateElectionStatuses() {
         $now = date('Y-m-d H:i:s');
         
-        // Start elections that should be active
+        // Update all elections based on their dates (except cancelled ones)
+        // Fix elections that should be upcoming (start date in future)
         $sql = "UPDATE {$this->table} 
-                SET status = 'active' 
-                WHERE status = 'upcoming' 
-                AND start_date <= :now 
-                AND end_date >= :now";
+                SET status = 'upcoming' 
+                WHERE start_date > :now 
+                AND status NOT IN ('cancelled')";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['now' => $now]);
+        
+        // Start elections that should be active (between start and end date)
+        $sql = "UPDATE {$this->table} 
+                SET status = 'active' 
+                WHERE start_date <= :now1 
+                AND end_date >= :now2
+                AND status NOT IN ('cancelled')";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['now1' => $now, 'now2' => $now]);
         
         // Close elections that have ended
         $sql = "UPDATE {$this->table} 
                 SET status = 'completed' 
-                WHERE status = 'active' 
-                AND end_date < :now";
+                WHERE end_date < :now
+                AND status NOT IN ('cancelled')";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['now' => $now]);
     }
@@ -214,5 +266,27 @@ class Election extends Model {
         
         $result = $this->query($sql, ['id' => $id]);
         return $result[0] ?? null;
+    }
+    
+    /**
+     * Count all elections in the system
+     * 
+     * @return int
+     */
+    public function countAllElections() {
+        $sql = "SELECT COUNT(*) as total FROM elections";
+        $result = $this->query($sql);
+        return isset($result[0]['total']) ? (int)$result[0]['total'] : 0;
+    }
+    
+    /**
+     * Count active elections
+     * 
+     * @return int
+     */
+    public function countActiveElections() {
+        $sql = "SELECT COUNT(*) as total FROM elections WHERE status = 'active'";
+        $result = $this->query($sql);
+        return isset($result[0]['total']) ? (int)$result[0]['total'] : 0;
     }
 }

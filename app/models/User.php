@@ -157,4 +157,15 @@ class User extends Model {
         }
         return [];
     }
+    
+    /**
+     * Count total voters in the system
+     * 
+     * @return int
+     */
+    public function countVoters() {
+        $sql = "SELECT COUNT(*) as total FROM users WHERE is_voter = 1";
+        $result = $this->query($sql);
+        return isset($result[0]['total']) ? (int)$result[0]['total'] : 0;
+    }
 }

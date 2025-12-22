@@ -38,11 +38,22 @@ class VoterController extends Controller {
         
         $userId = Session::get('user_id');
         
-        // Get active elections
+        // Get active elections (statuses are auto-updated)
         $activeElections = $this->electionModel->getActiveElections();
         
         // Get upcoming elections
         $upcomingElections = $this->electionModel->getUpcomingElections();
+        
+        // Get completed elections
+        $completedElections = $this->electionModel->getCompletedElections();
+        
+        // Get results for each completed election
+        require_once __DIR__ . '/../models/Result.php';
+        $resultModel = new Result();
+        foreach ($completedElections as &$election) {
+            $election['results'] = $resultModel->getElectionResults($election['id']);
+            $election['winners'] = $resultModel->getAllWinners($election['id']);
+        }
         
         // Get elections where user has already voted
         $votedElections = $this->voteModel->getVotesByVoter($userId);
@@ -59,6 +70,7 @@ class VoterController extends Controller {
             'title' => 'Voter Dashboard',
             'activeElections' => $activeElections,
             'upcomingElections' => $upcomingElections,
+            'completedElections' => $completedElections,
             'votedElectionIds' => $votedElectionIds
         ];
         

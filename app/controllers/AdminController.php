@@ -51,7 +51,7 @@ class AdminController extends Controller {
         
         Session::start();
         
-        // Get data from database
+        // Get data from database (statuses auto-updated by getAll())
         $totalVoters = $this->userModel->count(['is_voter' => 1]);
         $elections = $this->electionModel->getAll();
         $activeElections = count(array_filter($elections ?? [], fn($e) => ($e['status'] ?? '') === 'active'));
@@ -81,6 +81,7 @@ class AdminController extends Controller {
         
         Session::start();
         
+        // Get elections (statuses auto-updated by getAll())
         $elections = $this->electionModel->getAll();
         
         $data = [
@@ -124,10 +125,10 @@ class AdminController extends Controller {
         header('Content-Type: application/json');
         
         $title = $_POST['title'] ?? '';
-        $status = $_POST['status'] ?? 'upcoming';
         $description = $_POST['description'] ?? '';
         $startDate = $_POST['start_date'] ?? '';
         $endDate = $_POST['end_date'] ?? '';
+        // Status is auto-calculated from dates, ignore any submitted status
         $candidates = $_POST['candidates'] ?? [];
         
         if (!$title || !$startDate || !$endDate) {
@@ -136,20 +137,33 @@ class AdminController extends Controller {
         }
         
         try {
-            // Map status values to match database enum
-            $statusMap = [
-                'draft' => 'upcoming',
-                'upcoming' => 'upcoming',
-                'active' => 'active',
-                'closed' => 'completed',
-                'completed' => 'completed',
-                'cancelled' => 'cancelled'
-            ];
-            $dbStatus = $statusMap[$status] ?? 'upcoming';
-            
             // Format dates for database (convert from datetime-local to DATETIME format)
             $startDateFormatted = date('Y-m-d H:i:s', strtotime($startDate));
             $endDateFormatted = date('Y-m-d H:i:s', strtotime($endDate));
+            
+            // Automatically determine status based on dates using timestamp comparison
+            $now = time();
+            $startTime = strtotime($startDateFormatted);
+            $endTime = strtotime($endDateFormatted);
+            
+            // Auto-calculate the correct status
+            if ($now < $startTime) {
+                // Election hasn't started yet
+                $dbStatus = 'upcoming';
+            } elseif ($now >= $startTime && $now <= $endTime) {
+                // Election is currently running
+                $dbStatus = 'active';
+            } else {
+                // Election has ended
+                $dbStatus = 'completed';
+            }
+            
+            // Log for debugging (remove this later)
+            error_log("Election Save Debug:");
+            error_log("Now: " . date('Y-m-d H:i:s', $now));
+            error_log("Start: $startDateFormatted");
+            error_log("End: $endDateFormatted");
+            error_log("Calculated Status: $dbStatus");
             
             // Create builder and use director to construct election (for builder pattern)
             $builder = new ConcreteElectionBuilder();
@@ -270,11 +284,11 @@ class AdminController extends Controller {
         
         $electionId = $_POST['election_id'] ?? 0;
         $title = $_POST['title'] ?? '';
-        $status = $_POST['status'] ?? 'upcoming';
         $description = $_POST['description'] ?? '';
         $startDate = $_POST['start_date'] ?? '';
         $endDate = $_POST['end_date'] ?? '';
         $candidates = $_POST['candidates'] ?? [];
+        // Status is auto-calculated from dates, ignore any submitted status
         
         if (!$electionId || !$title || !$startDate || !$endDate) {
             echo json_encode(['success' => false, 'message' => 'Missing required fields']);
@@ -282,20 +296,26 @@ class AdminController extends Controller {
         }
         
         try {
-            // Map status values to match database enum
-            $statusMap = [
-                'draft' => 'upcoming',
-                'upcoming' => 'upcoming',
-                'active' => 'active',
-                'closed' => 'completed',
-                'completed' => 'completed',
-                'cancelled' => 'cancelled'
-            ];
-            $dbStatus = $statusMap[$status] ?? 'upcoming';
-            
             // Format dates for database
             $startDateFormatted = date('Y-m-d H:i:s', strtotime($startDate));
             $endDateFormatted = date('Y-m-d H:i:s', strtotime($endDate));
+            
+            // Automatically determine status based on dates using timestamp comparison
+            $now = time();
+            $startTime = strtotime($startDateFormatted);
+            $endTime = strtotime($endDateFormatted);
+            
+            // Auto-calculate the correct status
+            if ($now < $startTime) {
+                // Election hasn't started yet
+                $dbStatus = 'upcoming';
+            } elseif ($now >= $startTime && $now <= $endTime) {
+                // Election is currently running
+                $dbStatus = 'active';
+            } else {
+                // Election has ended
+                $dbStatus = 'completed';
+            }
             
             // Update election in database
             $updated = $this->electionModel->update($electionId, [
@@ -387,6 +407,50 @@ class AdminController extends Controller {
         } catch (Exception $e) {
             error_log('Election deletion error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Error deleting election: ' . $e->getMessage()]);
+            exit;
+        }
+    }
+    
+    /**
+     * Cancel an election (sets status to 'cancelled')
+     */
+    public function cancelElection() {
+        if (!$this->isAdmin() || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit;
+        }
+        
+        header('Content-Type: application/json');
+        
+        // Get election ID from URL
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            echo json_encode(['success' => false, 'message' => 'Election ID is required']);
+            exit;
+        }
+        
+        try {
+            // Check if election exists
+            $election = $this->electionModel->find($id);
+            if (!$election) {
+                echo json_encode(['success' => false, 'message' => 'Election not found']);
+                exit;
+            }
+            
+            // Update election status to cancelled
+            $cancelled = $this->electionModel->update($id, ['status' => 'cancelled']);
+            
+            if ($cancelled) {
+                echo json_encode(['success' => true, 'message' => 'Election cancelled successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to cancel election']);
+            }
+            exit;
+            
+        } catch (Exception $e) {
+            error_log('Election cancellation error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error cancelling election: ' . $e->getMessage()]);
             exit;
         }
     }
@@ -572,29 +636,25 @@ class AdminController extends Controller {
             
             $candidates = $this->candidateModel->getCandidatesByElection($electionId);
             $voteCounts = [];
-            $recentVotes = [];
             
             foreach ($candidates as $candidate) {
                 $votes = $this->voteModel->getVotesByCandidate($candidate['id']);
                 $voteCounts[] = count($votes);
-                
-                // Get recent votes for this candidate
-                if (!empty($votes)) {
-                    $recentVote = end($votes);
-                    $voter = $this->userModel->find($recentVote['voter_id']);
-                    $recentVotes[] = [
-                        'voter_name' => $voter['name'] ?? 'Unknown',
-                        'candidate_name' => $candidate['name'],
-                        'vote_time' => $recentVote['vote_time'] ?? 'N/A'
-                    ];
-                }
             }
-            
-            // Sort recent votes by time (most recent first)
-            usort($recentVotes, function($a, $b) {
-                return strtotime($b['vote_time']) - strtotime($a['vote_time']);
-            });
-            $recentVotes = array_slice($recentVotes, 0, 10); // Get last 10
+
+            // Truly recent votes across the entire election (not per-candidate last)
+            $recentVotes = $this->voteModel->query(
+                "SELECT v.vote_time, 
+                        u.name AS voter_name, 
+                        c.name AS candidate_name
+                 FROM votes v
+                 JOIN users u ON u.id = v.voter_id
+                 JOIN candidates c ON c.id = v.candidate_id
+                 WHERE v.election_id = :eid
+                 ORDER BY v.vote_time DESC
+                 LIMIT 10",
+                ['eid' => $electionId]
+            );
             
             echo json_encode([
                 'success' => true,

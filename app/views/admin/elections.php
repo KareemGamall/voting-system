@@ -25,18 +25,12 @@
             </div>
 
             <div class="form-group">
-              <label>Status</label>
-              <select id="electionStatus">
-                <option value="upcoming">Upcoming</option>
-                <option value="active">Active (Voting Open)</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-
-            <div class="form-group">
               <label>Description</label>
               <textarea id="electionDesc" rows="3" placeholder="Brief description of this election..."></textarea>
+            </div>
+            
+            <div class="alert alert-info" style="margin-bottom: 1.5rem; padding: 12px; background: #e3f2fd; border-left: 4px solid #2196f3; color: #1565c0;">
+              <strong>Note:</strong> Election status is automatically determined based on start and end dates.
             </div>
 
             <div class="form-grid">
@@ -102,6 +96,9 @@
                   </div>
                   <div style="display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
                     <button onclick="editElection(<?= htmlspecialchars($election['id'] ?? '') ?>)" class="btn-primary btn-small">Edit</button>
+                    <?php if ($status !== 'cancelled'): ?>
+                      <button onclick="cancelElection(<?= htmlspecialchars($election['id'] ?? '') ?>, '<?= htmlspecialchars(addslashes($election['election_name'] ?? '')) ?>')" class="btn-secondary btn-small">Cancel</button>
+                    <?php endif; ?>
                     <button onclick="deleteElection(<?= htmlspecialchars($election['id'] ?? '') ?>, '<?= htmlspecialchars(addslashes($election['election_name'] ?? '')) ?>')" class="btn-danger btn-small">Delete</button>
                   </div>
                 </div>
@@ -188,10 +185,10 @@
     function saveElectionAjax() {
       const electionId = document.getElementById("electionId")?.value || "";
       const title = document.getElementById("electionTitle")?.value.trim() || "";
-      const status = document.getElementById("electionStatus")?.value || "upcoming";
       const desc = document.getElementById("electionDesc")?.value.trim() || "";
       const start = document.getElementById("electionStart")?.value || "";
       const end = document.getElementById("electionEnd")?.value || "";
+      // Status is auto-calculated on server based on dates
       
       if (!title || !start || !end) {
         alert("Election title, start date, and end date are required.");
@@ -203,10 +200,10 @@
         formData.append('election_id', electionId);
       }
       formData.append('title', title);
-      formData.append('status', status);
       formData.append('description', desc);
       formData.append('start_date', start);
       formData.append('end_date', end);
+      // Don't send status - server calculates it from dates
       
       currentCandidates.forEach((c, i) => {
         formData.append(`candidates[${i}][name]`, c.name);
@@ -288,7 +285,6 @@
         document.getElementById("electionId").value = election.id;
         document.getElementById("electionTitle").value = election.election_name || "";
         document.getElementById("electionDesc").value = election.description || "";
-        document.getElementById("electionStatus").value = election.status || "upcoming";
         
         // Format dates for datetime-local input
         const startDate = new Date(election.start_date);
@@ -322,6 +318,37 @@
         console.error("Error loading election:", error);
         alert("An error occurred while loading the election data");
       }
+    }
+
+    // ===== Cancel Election =====
+    function cancelElection(electionId, electionName) {
+      if (!confirm(`Are you sure you want to cancel "${electionName}"?\n\nThis will prevent any further voting on this election.`)) {
+        return;
+      }
+      
+      fetch(BASE_URL + '/admin/cancel-election/' + electionId, {
+        method: 'POST'
+      })
+      .then(async r => {
+        const text = await r.text();
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          throw new Error('Server returned invalid response: ' + text.substring(0, 100));
+        }
+      })
+      .then(data => {
+        if (data.success) {
+          alert("Election cancelled successfully!");
+          location.reload();
+        } else {
+          alert("Error: " + (data.message || "Failed to cancel election"));
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("An error occurred while cancelling the election");
+      });
     }
 
     // ===== Delete Election =====

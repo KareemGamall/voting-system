@@ -132,7 +132,8 @@ class ResultController extends Controller {
         
         Session::start();
         
-        $elections = $this->electionModel->getAll();
+        // Only show completed elections in the results dropdown
+        $elections = $this->electionModel->getCompletedElections();
         
         $data = [
             'title' => 'Election Results & Reports',
@@ -171,10 +172,68 @@ class ResultController extends Controller {
                 exit;
             }
             
-            // Get results
+            // Get results (from results table)
             $results = $this->resultModel->getElectionResults($electionId);
             $resultsByPosition = $this->resultModel->getResultsByPosition($electionId);
             $winners = $this->resultModel->getAllWinners($electionId);
+
+            // If no stored results:
+            // - For completed elections, auto-generate results once from votes table then re-query
+            // - For active/upcoming elections, compute live tallies without persisting
+            if (empty($results)) {
+                $status = strtolower($election['status'] ?? '');
+                if ($status === 'completed') {
+                    // Persist calculated results for completed election
+                    $this->resultModel->calculateResults($electionId);
+                    $results = $this->resultModel->getElectionResults($electionId);
+                    $resultsByPosition = $this->resultModel->getResultsByPosition($electionId);
+                    $winners = $this->resultModel->getAllWinners($electionId);
+                } else {
+                    // Live computation (no DB writes) for active/upcoming
+                    $liveRows = $this->resultModel->query(
+                        "SELECT 
+                            c.id AS candidate_id,
+                            c.name AS candidate_name,
+                            c.position,
+                            c.party,
+                            c.photo,
+                            COUNT(v.id) AS vote_count
+                         FROM candidates c
+                         LEFT JOIN votes v ON c.id = v.candidate_id
+                         WHERE c.election_id = :election_id
+                         GROUP BY c.id, c.name, c.position, c.party, c.photo
+                         ORDER BY c.position ASC, vote_count DESC",
+                        ['election_id' => $electionId]
+                    );
+
+                    // Compute percentages
+                    $liveTotal = array_sum(array_column($liveRows, 'vote_count'));
+                    foreach ($liveRows as &$row) {
+                        $row['percentage'] = $liveTotal > 0 ? round(($row['vote_count'] / $liveTotal) * 100, 2) : 0;
+                    }
+                    unset($row);
+
+                    // Group by position for UI
+                    $liveByPosition = [];
+                    foreach ($liveRows as $r) {
+                        $pos = $r['position'] ?? 'General';
+                        if (!isset($liveByPosition[$pos])) $liveByPosition[$pos] = [];
+                        $liveByPosition[$pos][] = $r;
+                    }
+
+                    // Derive simple winners (highest vote per position)
+                    $liveWinners = [];
+                    foreach ($liveByPosition as $pos => $rows) {
+                        $max = 0; $winner = null;
+                        foreach ($rows as $r) { if ($r['vote_count'] >= $max) { $max = $r['vote_count']; $winner = $r; } }
+                        if ($winner) { $liveWinners[] = $winner; }
+                    }
+
+                    $results = $liveRows;
+                    $resultsByPosition = $liveByPosition;
+                    $winners = $liveWinners;
+                }
+            }
             
             // Get voting statistics
             $votingStats = $this->voteModel->getElectionVotingStats($electionId);

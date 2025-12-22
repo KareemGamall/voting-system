@@ -237,4 +237,15 @@ class Vote extends Model {
         $vote = $this->findWhere('vote_id = :vote_id', ['vote_id' => $voteId]);
         return $vote !== false;
     }
+    
+    /**
+     * Count all votes cast in the system
+     * 
+     * @return int
+     */
+    public function countAllVotes() {
+        $sql = "SELECT COUNT(*) as total FROM {$this->table}";
+        $result = $this->query($sql);
+        return isset($result[0]['total']) ? (int)$result[0]['total'] : 0;
+    }
 }

@@ -65,14 +65,38 @@ class Result extends Model {
                     c.position,
                     c.party,
                     c.photo,
-                    e.election_name
+                    e.election_name,
+                    (SELECT MAX(r2.vote_count) 
+                     FROM {$this->table} r2 
+                     JOIN candidates c2 ON r2.candidate_id = c2.id 
+                     WHERE r2.election_id = r.election_id 
+                     AND c2.position = c.position) as max_votes_in_position,
+                    (SELECT COUNT(*) 
+                     FROM {$this->table} r2 
+                     JOIN candidates c2 ON r2.candidate_id = c2.id 
+                     WHERE r2.election_id = r.election_id 
+                     AND c2.position = c.position 
+                     AND r2.vote_count = (SELECT MAX(r3.vote_count) 
+                                          FROM {$this->table} r3 
+                                          JOIN candidates c3 ON r3.candidate_id = c3.id 
+                                          WHERE r3.election_id = r.election_id 
+                                          AND c3.position = c.position)) as tied_count
                 FROM {$this->table} r
                 JOIN candidates c ON r.candidate_id = c.id
                 JOIN elections e ON r.election_id = e.id
                 WHERE r.election_id = :election_id
-                ORDER BY r.vote_count DESC";
+                ORDER BY c.position ASC, r.vote_count DESC";
         
-        return $this->query($sql, ['election_id' => $electionId]);
+        $results = $this->query($sql, ['election_id' => $electionId]);
+        
+        // Add is_winner and is_tied flags
+        foreach ($results as &$result) {
+            $hasTie = ($result['tied_count'] > 1 && $result['vote_count'] == $result['max_votes_in_position']);
+            $result['is_tied'] = $hasTie;
+            $result['is_winner'] = ($result['vote_count'] > 0 && $result['vote_count'] == $result['max_votes_in_position'] && !$hasTie);
+        }
+        
+        return $results;
     }
     
     /**
@@ -110,6 +134,7 @@ class Result extends Model {
     
     /**
      * Get winner(s) for a specific position in an election
+     * Returns null if there's a tie
      * 
      * @param int $electionId
      * @param string $position
@@ -126,15 +151,32 @@ class Result extends Model {
                 JOIN candidates c ON r.candidate_id = c.id
                 WHERE r.election_id = :election_id 
                 AND c.position = :position
-                ORDER BY r.vote_count DESC
-                LIMIT 1";
+                ORDER BY r.vote_count DESC";
         
-        $result = $this->query($sql, [
+        $results = $this->query($sql, [
             'election_id' => $electionId,
             'position' => $position
         ]);
         
-        return $result[0] ?? null;
+        if (empty($results)) {
+            return null;
+        }
+        
+        // Check if there's a tie for first place
+        $maxVotes = $results[0]['vote_count'];
+        $tiedCount = 0;
+        foreach ($results as $result) {
+            if ($result['vote_count'] == $maxVotes) {
+                $tiedCount++;
+            }
+        }
+        
+        // If there's a tie (more than one candidate with max votes), return null
+        if ($tiedCount > 1) {
+            return null;
+        }
+        
+        return $results[0];
     }
     
     /**

@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="<?php echo asset('css/style.css'); ?>?v=<?php echo time(); ?>">
   <link rel="stylesheet" href="<?php echo asset('css/admin.css'); ?>?v=<?php echo time(); ?>">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Results Page Styles v2.0 -->
   <style>
     /* Page-specific styles for results display */
     .select-styled {
@@ -82,65 +81,14 @@
     }
 
     .winner-badge {
-      background: #d4edda;
-      color: #155724;
+      background: var(--success-light);
+      color: var(--success-color);
       padding: 4px 10px;
       border-radius: 12px;
       font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
       margin-left: 8px;
-    }
-
-    body.dark-mode .winner-badge {
-      background: rgba(34, 197, 94, 0.2);
-      color: #4ade80;
-    }
-
-    .winner-card {
-      padding: 15px;
-      margin-bottom: 10px;
-      background: #f8f9fa;
-      color: #212529;
-      border-radius: 8px;
-      border-left: 4px solid #27ae60;
-    }
-
-    body.dark-mode .winner-card {
-      background: #1e293b;
-      color: #f8fafc;
-      border-left-color: #4ade80;
-    }
-
-    .tied-badge {
-      background: #fff3cd;
-      color: #856404;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      margin-left: 8px;
-    }
-
-    body.dark-mode .tied-badge {
-      background: rgba(245, 158, 11, 0.2);
-      color: #fbbf24;
-    }
-
-    .tie-card {
-      padding: 15px;
-      margin-bottom: 10px;
-      background: #fff3cd;
-      color: #856404;
-      border-radius: 8px;
-      border-left: 4px solid #ffc107;
-    }
-
-    body.dark-mode .tie-card {
-      background: rgba(245, 158, 11, 0.15);
-      color: #fbbf24;
-      border-left-color: #fbbf24;
     }
 
     .position-group {
@@ -265,6 +213,107 @@
           <div id="alertContainer" style="margin-bottom: 15px;"></div>
           
           <label for="resultsElectionSelect">Select Election:</label>
+    let currentElectionHasResults = false;
+
+    function showAlert(message, type = 'info') {
+      const container = document.getElementById('alertContainer');
+      container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+      setTimeout(() => {
+        container.innerHTML = '';
+      }, 5000);
+    }
+
+    function generateResults() {
+      if (!currentElectionId) {
+        showAlert('Please select an election first.', 'error');
+        return;
+      }
+
+      if (confirm('Generate results for this election? This will recalculate all vote counts.')) {
+        const generateBtn = document.getElementById('generateBtn');
+        const spinner = document.getElementById('loadingSpinner');
+        
+        generateBtn.disabled = true;
+        spinner.classList.remove('hidden');
+
+        fetch(`${BASE_URL}/admin/generate-results`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: `election_id=${currentElectionId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+          generateBtn.disabled = false;
+          spinner.classList.add('hidden');
+
+          if (data.success) {
+            showAlert('Results generated successfully!', 'success');
+            // Reload results to show the newly generated data
+            setTimeout(() => {
+              loadResults();
+            }, 1000);
+          } else {
+            showAlert(data.message || 'Failed to generate results.', 'error');
+          }
+        })
+        .catch(error => {
+          generateBtn.disabled = false;
+          spinner.classList.add('hidden');
+          showAlert('An error occurred while generating results.', 'error');
+          console.error('Error:', error);
+        });
+      }
+    }
+
+    function loadResults() {
+      const electionId = document.getElementById('resultsElectionSelect').value;
+      
+      if (!electionId) {
+        document.getElementById('resultsContainer').style.display = 'none';
+        document.getElementById('exportBtn').style.display = 'none';
+        document.getElementById('generateBtn').style.display = 'none';
+        if (resultsChartInstance) {
+          resultsChartInstance.destroy();
+          resultsChartInstance = null;
+        }
+        return;
+      }
+
+      currentElectionId = electionId;
+
+      fetch(`${BASE_URL}/admin/results-data?election_id=${electionId}`)
+        .then(response => response.json())
+        .then(data => {
+          if (!data.success) {
+            showAlert('Error loading results: ' + (data.message || 'Unknown error'), 'error');
+            document.getElementById('resultsContainer').style.display = 'none';
+            document.getElementById('exportBtn').style.display = 'none';
+            document.getElementById('generateBtn').style.display = 'inline-block';
+            currentElectionHasResults = false;
+            return;
+          }
+
+          // Check if election has results
+          if (!data.results || data.results.length === 0) {
+            currentElectionHasResults = false;
+            document.getElementById('generateBtn').style.display = 'inline-block';
+            document.getElementById('exportBtn').style.display = 'none';
+            document.getElementById('resultsContainer').style.display = 'none';
+            showAlert('No results available for this election. Click "Generate Results" to calculate.', 'info');
+          } else {
+            currentElectionHasResults = true;
+            document.getElementById('generateBtn').style.display = 'inline-block';
+            document.getElementById('exportBtn').style.display = 'inline-block';
+            displayResults(data);
+          }
+        })
+        .catch(error => {
+          console.error('Error loading results:', error);
+          showAlert('Error loading results. Please try again.', 'error');
+        });
+    }
           <select id="resultsElectionSelect" class="select-styled" onchange="loadResults()">
             <option value="">-- Select Election --</option>
             <?php if (!empty($elections)): ?>
@@ -277,9 +326,13 @@
             <?php endif; ?>
           </select>
 
-          <div style="margin-top: 20px; display: flex; gap: 10px; margin-bottom: 20px;">
-            <button id="printBtn" class="btn btn-primary" onclick="printResults()" style="display: none;">
-              Print Results
+          <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button id="generateBtn" class="btn btn-success" onclick="generateResults()" style="display: none;">
+              Generate Results
+              <span id="loadingSpinner" class="spinner hidden" style="margin-left: 10px;"></span>
+            </button>
+            <button id="exportBtn" class="btn btn-primary" onclick="exportResults()" style="display: none;">
+              Export Results
             </button>
           </div>
 
@@ -314,83 +367,39 @@
   </div>
 
   <script>
-    // JavaScript version: <?= time() . '-' . md5(time()) ?>
-    console.log('Script loaded at: <?= date('Y-m-d H:i:s') ?>');
     const BASE_URL = '<?= BASE_URL ?>';
-    console.log('BASE_URL initialized:', BASE_URL);
     let resultsChartInstance = null;
     let currentElectionId = null;
-    let currentElectionHasResults = false;
-
-    function showAlert(message, type = 'info', autoClear = true) {
-      const container = document.getElementById('alertContainer');
-      container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-      if (autoClear) {
-        setTimeout(() => {
-          container.innerHTML = '';
-        }, 5000);
-      }
-    }
 
     function loadResults() {
       const electionId = document.getElementById('resultsElectionSelect').value;
       
-      console.log('loadResults called with electionId:', electionId);
-      
       if (!electionId) {
         document.getElementById('resultsContainer').style.display = 'none';
-        document.getElementById('printBtn').style.display = 'none';
+        document.getElementById('exportBtn').style.display = 'none';
         if (resultsChartInstance) {
           resultsChartInstance.destroy();
           resultsChartInstance = null;
         }
         return;
       }
-      
-      // Clear any previous alerts
-      document.getElementById('alertContainer').innerHTML = '';
 
       currentElectionId = electionId;
-      console.log('Fetching results for election:', electionId);
-      console.log('Fetch URL:', `${BASE_URL}/admin/results-data?election_id=${electionId}`);
+      document.getElementById('exportBtn').style.display = 'inline-block';
 
       fetch(`${BASE_URL}/admin/results-data?election_id=${electionId}`)
-        .then(response => {
-          console.log('Response status:', response.status);
-          console.log('Response OK:', response.ok);
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-          console.log('Data received:', data);
-          
           if (!data.success) {
-            showAlert('Error: ' + (data.message || 'Unknown error'), 'error', false);
-            document.getElementById('resultsContainer').style.display = 'none';
-            document.getElementById('printBtn').style.display = 'none';
-            currentElectionHasResults = false;
+            alert('Error loading results: ' + (data.message || 'Unknown error'));
             return;
           }
 
-          // Check if election has results
-          if (!data.results || data.results.length === 0) {
-            console.log('No results found for this election');
-            currentElectionHasResults = false;
-            document.getElementById('printBtn').style.display = 'none';
-            document.getElementById('resultsContainer').style.display = 'none';
-            showAlert('No results available for this election yet.', 'info', false);
-          } else {
-            console.log('Results found, displaying...');
-            currentElectionHasResults = true;
-            document.getElementById('printBtn').style.display = 'inline-block';
-            displayResults(data);
-          }
+          displayResults(data);
         })
         .catch(error => {
           console.error('Error loading results:', error);
-          showAlert('Network error: ' + error.message, 'error', false);
+          alert('Error loading results. Please try again.');
         });
     }
 
@@ -515,11 +524,6 @@
       let positionHTML = '<div class="form-card" style="margin-top: 20px;"><h3>Results by Position</h3>';
       
       for (const [position, positionResults] of Object.entries(resultsByPosition)) {
-        // Check if there's a tie for the top position
-        const maxVotes = Math.max(...positionResults.map(pr => pr.vote_count));
-        const topCandidates = positionResults.filter(pr => pr.vote_count === maxVotes);
-        const hasTie = topCandidates.length > 1 && maxVotes > 0;
-        
         positionHTML += `
           <div class="position-group">
             <h4>${position}</h4>
@@ -537,7 +541,7 @@
                   <tr>
                     <td>
                       ${r.candidate_name || 'N/A'}
-                      ${hasTie && r.vote_count === maxVotes ? '<span class="tied-badge">Tied</span>' : (r.vote_count === maxVotes && maxVotes > 0 ? '<span class="winner-badge">Winner</span>' : '')}
+                      ${r.vote_count === Math.max(...positionResults.map(pr => pr.vote_count)) ? '<span class="winner-badge">Winner</span>' : ''}
                     </td>
                     <td>${r.party || 'Independent'}</td>
                     <td>${r.vote_count || 0}</td>
@@ -553,115 +557,37 @@
       positionHTML += '</div>';
       positionDiv.innerHTML = positionHTML;
 
-      // Display winners and ties
-      const winnersSection = document.getElementById('winnersSection');
-      const winnersList = document.getElementById('winnersList');
-      let winnersHTML = '';
-      
-      // Collect ties by position
-      const tiesByPosition = {};
-      for (const [position, positionResults] of Object.entries(resultsByPosition)) {
-        const maxVotes = Math.max(...positionResults.map(pr => pr.vote_count));
-        const topCandidates = positionResults.filter(pr => pr.vote_count === maxVotes);
-        if (topCandidates.length > 1 && maxVotes > 0) {
-          tiesByPosition[position] = topCandidates;
-        }
-      }
-      
-      // Show ties first
-      if (Object.keys(tiesByPosition).length > 0) {
-        winnersHTML += '<h4 style="color: #856404; margin-bottom: 15px;">⚠️ Tied Positions</h4>';
-        for (const [position, tiedCandidates] of Object.entries(tiesByPosition)) {
-          winnersHTML += `
-            <div class="tie-card">
-              <strong>${position}:</strong> TIE - 
-              ${tiedCandidates.map(c => `${c.candidate_name || 'N/A'} (${c.party || 'Independent'})`).join(', ')} 
-              - ${tiedCandidates[0].vote_count || 0} votes each (${tiedCandidates[0].percentage || 0}%)
-              <br><em style="font-size: 0.9em;">No winner declared due to tie</em>
-            </div>
-          `;
-        }
-      }
-      
-      // Show winners (only positions without ties)
+      // Display winners
       if (winners.length > 0) {
-        winnersHTML += '<h4 style="color: #27ae60; margin-top: 20px; margin-bottom: 15px;">🏆 Winners</h4>';
-        winnersList.innerHTML = winnersHTML + winners.map(w => `
-          <div class="winner-card">
+        const winnersSection = document.getElementById('winnersSection');
+        const winnersList = document.getElementById('winnersList');
+        
+        winnersList.innerHTML = winners.map(w => `
+          <div style="padding: 15px; margin-bottom: 10px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #27ae60;">
             <strong>${w.position}:</strong> ${w.candidate_name || 'N/A'} 
             (${w.party || 'Independent'}) - ${w.vote_count || 0} votes (${w.percentage || 0}%)
           </div>
         `).join('');
         
         winnersSection.style.display = 'block';
-      } else if (Object.keys(tiesByPosition).length > 0) {
-        // Only ties, no clear winners
-        winnersList.innerHTML = winnersHTML;
-        winnersSection.style.display = 'block';
       }
 
       document.getElementById('resultsContainer').style.display = 'block';
     }
 
-    function printResults() {
+    function exportResults() {
       if (!currentElectionId) return;
       
-      // Create a print-friendly version of the results
-      const printWindow = window.open('', '_blank');
-      const resultsContainer = document.getElementById('resultsContainer');
-      const electionSelect = document.getElementById('resultsElectionSelect');
-      const selectedOption = electionSelect.options[electionSelect.selectedIndex];
+      const format = prompt('Export format:\n1. JSON\n2. CSV\n\nEnter 1 or 2:', '1');
+      if (!format) return;
       
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Election Results - ${selectedOption.text}</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 20px; }
-            h1, h2, h3 { color: #333; }
-            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-            th, td { padding: 12px; text-align: left; border: 1px solid #ddd; }
-            th { background-color: #6366f1; color: white; }
-            tr:nth-child(even) { background-color: #f8f9fa; }
-            .winner-badge { background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 8px; }
-            .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 20px 0; }
-            .stat-card { padding: 15px; border: 1px solid #ddd; border-radius: 8px; text-align: center; }
-            .stat-card div:first-child { font-size: 24px; font-weight: bold; color: #6366f1; }
-            .position-group { margin: 30px 0; }
-            .position-group h4 { border-bottom: 2px solid #6366f1; padding-bottom: 10px; }
-            @media print {
-              .no-print { display: none; }
-            }
-          </style>
-        </head>
-        <body>
-          <h1>Election Results Report</h1>
-          <h2>${selectedOption.text}</h2>
-          ${resultsContainer.innerHTML}
-          <script type="text/javascript">
-            window.onload = function() {
-              window.print();
-            };
-          <\/script>
-        </body>
-        </html>
-      `);
-      
-      printWindow.document.close();
+      const exportFormat = format === '2' ? 'csv' : 'json';
+      window.open(`${BASE_URL}/admin/export-results?election_id=${currentElectionId}&format=${exportFormat}`, '_blank');
     }
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', () => {
-      const electionSelect = document.getElementById('resultsElectionSelect');
-      if (electionSelect && electionSelect.value) {
-        loadResults();
-      }
-      if (electionSelect) {
-        electionSelect.addEventListener('change', function() {
-          loadResults();
-        });
-      }
+      // Results dropdown is already populated from PHP
     });
   </script>
 </body>

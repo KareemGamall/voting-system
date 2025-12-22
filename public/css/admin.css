@@ -280,7 +280,7 @@ body:not(.dark-mode) #sidebar {
     /* Light mode */
     border: 1px solid #e2e8f0;
     border-radius: var(--radius-lg);
-    padding: 1.75rem;
+    padding: 2rem; /* Increased card padding for better spacing */
     margin-bottom: 1.25rem;
     box-shadow: var(--shadow-sm);
     transition: all 0.2s ease;
@@ -288,6 +288,29 @@ body:not(.dark-mode) #sidebar {
     align-items: center;
     justify-content: space-between;
     gap: var(--space-md);
+    min-height: 140px; /* Ensure consistent card height */
+}
+
+/* Election cards should stack content vertically to avoid button conflicts */
+.election-item {
+    display: block;
+    align-items: stretch;
+    justify-content: initial;
+}
+
+/* Ensure action buttons wrap to the next line when space is tight */
+.election-item .btn-primary,
+.election-item .btn-secondary,
+.election-item .btn-danger {
+    flex: 0 0 auto;
+}
+
+/* When actions are in a flex row, allow wrapping and add spacing */
+.election-item .btn-primary,
+.election-item .btn-secondary,
+.election-item .btn-danger,
+.election-item .btn-small {
+    margin-top: 2px;
 }
 
 /* Dark mode data items */
@@ -606,7 +629,15 @@ button.btn-success:hover {
 /* Small Button Variant */
 .btn-small,
 button.btn-small {
-    padding: 0.5rem 1rem;
-    min-height: 32px;
-    font-size: 0.85rem;
+    padding: 0.65rem 1.15rem; /* Slightly larger buttons */
+    min-height: 38px;
+    font-size: 0.92rem;
+}
+
+/* Make list action buttons a touch larger only inside election cards */
+.election-item .btn-small,
+.election-item button.btn-small {
+    padding: 0.7rem 1.2rem;
+    min-width: 88px;
+    border-radius: 10px;
 }
